@@ -1,0 +1,26 @@
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "data_tools"
+version = "0.1.0"
+description = "Data tools monorepo for Synthetix V3 including an API and dashboards"
+authors = ["Synthetix"]
+license = "MIT"
+readme = "README.md"
+packages = [
+    { include = "api" },
+    { include = "dashboards" },
+]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+streamlit = "^1.37.1"
+python-dotenv = "^1.0.1"
+st-pages = "^1.0.1"
+sqlalchemy = "^2.0.32"
+psycopg2-binary = "^2.9.9"
+plotly = "^5.23.0"
+watchdog = "^4.0.2"
+synthetix = "^0.1.15"

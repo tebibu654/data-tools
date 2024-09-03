@@ -108,3 +108,44 @@ class SynthetixAPI:
         """
         with self.get_connection() as conn:
             return pd.read_sql_query(query, conn)
+
+    def get_tvl_by_chain(
+        self,
+        start_date: datetime,
+        end_date: datetime,
+    ) -> pd.DataFrame:
+        """
+        Get Total Value Locked (TVL) data for all chains.
+
+        Args:
+            start_date (datetime): Start date for the query
+            end_date (datetime): End date for the query
+            resolution (str): Data resolution ('daily' or 'hourly')
+
+        Returns:
+            pandas.DataFrame: TVL data with columns 'ts', 'chain', 'tvl'
+        """
+        query = f"""
+        SELECT
+            ts,
+            'Arbitrum' AS label,
+            SUM(collateral_value) AS collateral_value,
+            SUM(cumulative_pnl) AS cumulative_pnl
+        FROM {self.environment}_arbitrum_mainnet.fct_core_apr_arbitrum_mainnet AS apr
+        WHERE ts >= '{start_date}' and ts <= '{end_date}'
+        GROUP BY ts, label
+
+        UNION ALL
+
+        SELECT
+            ts,
+            'Base' AS label,
+            SUM(collateral_value) AS collateral_value,
+            SUM(cumulative_pnl) AS cumulative_pnl
+        FROM {self.environment}_base_mainnet.fct_core_apr_base_mainnet AS apr
+        WHERE ts >= '{start_date}' and ts <= '{end_date}'
+        GROUP BY ts, label
+        ORDER BY ts
+        """
+        with self.get_connection() as conn:
+            return pd.read_sql_query(query, conn)

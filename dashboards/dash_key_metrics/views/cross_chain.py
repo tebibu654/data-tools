@@ -4,7 +4,7 @@ import streamlit as st
 
 from dashboards.utils.charts import chart_bars, chart_area
 
-st.markdown("# Synthetix V3: Cross-chain stats")
+st.markdown("# Cross-chain stats")
 
 
 @st.cache_data
@@ -42,7 +42,7 @@ chart = chart_area(
     x_col="ts",
     y_cols="collateral_value",
     title="Total Value Locked (TVL) by Chain",
-    color="label",
+    color="chain",
 )
 
 st.plotly_chart(chart)

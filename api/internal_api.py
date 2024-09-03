@@ -5,7 +5,7 @@ import sqlalchemy
 import pandas as pd
 from sqlalchemy.orm import sessionmaker
 from contextlib import contextmanager
-from typing import Dict, Any, Generator
+from typing import Generator, List
 from dotenv import load_dotenv
 
 
@@ -123,28 +123,88 @@ class SynthetixAPI:
             resolution (str): Data resolution ('daily' or 'hourly')
 
         Returns:
-            pandas.DataFrame: TVL data with columns 'ts', 'chain', 'tvl'
+            pandas.DataFrame: TVL data with columns 'ts', 'chain', 'collateral_value', 'cumulative_pnl'
         """
         query = f"""
         SELECT
             ts,
-            'Arbitrum' AS label,
+            'Arbitrum' AS chain,
             SUM(collateral_value) AS collateral_value,
             SUM(cumulative_pnl) AS cumulative_pnl
         FROM {self.environment}_arbitrum_mainnet.fct_core_apr_arbitrum_mainnet AS apr
         WHERE ts >= '{start_date}' and ts <= '{end_date}'
-        GROUP BY ts, label
+        GROUP BY ts, chain
 
         UNION ALL
 
         SELECT
             ts,
-            'Base' AS label,
+            'Base' AS chain,
             SUM(collateral_value) AS collateral_value,
             SUM(cumulative_pnl) AS cumulative_pnl
         FROM {self.environment}_base_mainnet.fct_core_apr_base_mainnet AS apr
         WHERE ts >= '{start_date}' and ts <= '{end_date}'
-        GROUP BY ts, label
+        GROUP BY ts, chain
+        ORDER BY ts
+        """
+        with self.get_connection() as conn:
+            return pd.read_sql_query(query, conn)
+
+    def get_tvl_by_collateral(
+        self,
+        start_date: datetime,
+        end_date: datetime,
+        resolution: str = "daily",
+        chain: str = "All",
+    ) -> pd.DataFrame:
+        """
+        Get Total Value Locked (TVL) data broken down by collateral type for all chains.
+        This function retrieves detailed TVL information including collateral value, debt,
+        PNL, rewards, issuance, and APR for each collateral type on both Arbitrum and Base chains.
+
+        Args:
+            start_date (datetime): Start date for the query
+            end_date (datetime): End date for the query
+            resolution (str): Data resolution ('daily' or 'hourly')
+
+        Returns:
+            pandas.DataFrame: TVL data with columns:
+                'ts', 'label', 'chain', 'collateral_value'
+        """
+        if chain == "All":
+            label = "'Arbitrum', 'Base'"
+        else:
+            label = f"'{chain}'"
+        query = f"""
+        WITH tvl AS (
+        SELECT 
+            ts,
+            CONCAT(coalesce(tk.token_symbol, collateral_type), ' (Arbitrum)') as label,
+            'Arbitrum' as chain,
+            collateral_value
+        FROM {self.environment}_arbitrum_mainnet.fct_core_apr_arbitrum_mainnet apr
+        LEFT JOIN {self.environment}_seeds.arbitrum_mainnet_tokens tk on lower(apr.collateral_type) = lower(tk.token_address)
+
+        UNION ALL
+
+        SELECT 
+            ts,
+            CONCAT(coalesce(tk.token_symbol, collateral_type), ' (Base)') as label,
+            'Base' as chain,
+            collateral_value
+        FROM {self.environment}_base_mainnet.fct_core_apr_base_mainnet apr
+        LEFT JOIN {self.environment}_seeds.base_mainnet_tokens tk on lower(apr.collateral_type) = lower(tk.token_address)
+        )
+
+        SELECT 
+            ts,
+            label,
+            chain,
+            collateral_value
+        FROM tvl
+        WHERE 
+            chain in ({label})
+            AND ts >= '{start_date}' and ts <= '{end_date}'
         ORDER BY ts
         """
         with self.get_connection() as conn:

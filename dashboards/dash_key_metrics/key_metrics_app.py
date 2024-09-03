@@ -20,14 +20,18 @@ st.markdown(hide_footer, unsafe_allow_html=True)
 def load_api():
     return SynthetixAPI(db_config=get_db_config(streamlit=True))
 
+
 st.session_state.api = load_api()
 
 # pages
-cross_chain = st.Page("views/cross_chain.py", title="Synthetix V3: Cross-chain stats")
+cross_chain = st.Page("views/cross_chain.py", title="Cross-chain stats")
+lp = st.Page("views/lp.py", title="Liquidity Providers")
+perps = st.Page("views/perps.py", title="Perps")
+token = st.Page("views/token.py", title="Token")
 
 # navigation
 pages = {
-    "Cross-chain Stats": [cross_chain],
+    "Synthetix V3": [cross_chain, lp, perps, token],
 }
 nav = st.navigation(pages)
 nav.run()

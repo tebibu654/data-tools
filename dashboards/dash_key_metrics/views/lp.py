@@ -77,11 +77,27 @@ chart_core_apr_rewards_by_collateral = chart_area(
     title="APR (Rewards)",
     color="label",
 )
+chart_core_debt_by_collateral = chart_area(
+    data["core_stats_by_collateral"],
+    x_col="ts",
+    y_cols="debt",
+    title="Debt",
+    color="label",
+)
+chart_core_rewards_usd_by_collateral = chart_area(
+    data["core_stats_by_collateral"],
+    x_col="ts",
+    y_cols="rewards_usd",
+    title="Rewards (USD)",
+    color="label",
+)
 
 
 st.plotly_chart(chart_core_tvl_by_collateral, use_container_width=True)
 chart_col1, chart_col2 = st.columns(2)
 with chart_col1:
     st.plotly_chart(chart_core_apr_by_collateral, use_container_width=True)
+    st.plotly_chart(chart_core_debt_by_collateral, use_container_width=True)
 with chart_col2:
     st.plotly_chart(chart_core_apr_rewards_by_collateral, use_container_width=True)
+    st.plotly_chart(chart_core_rewards_usd_by_collateral, use_container_width=True)

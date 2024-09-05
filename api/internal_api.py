@@ -201,7 +201,7 @@ class SynthetixAPI:
 
         Returns:
             pandas.DataFrame: TVL data with columns:
-                'ts', 'label', 'chain', 'collateral_value', 'apr'
+                'ts', 'label', 'chain', 'collateral_value', 'apr', 'debt', 'rewards_usd'
         """
         label = self._get_chain_label(chain)
         query = f"""
@@ -211,6 +211,8 @@ class SynthetixAPI:
                 CONCAT(coalesce(tk.token_symbol, collateral_type), ' (Arbitrum)') as label,
                 'Arbitrum' as chain,
                 collateral_value,
+                debt,
+                rewards_usd,
                 apr_{resolution} as apr,
                 apr_{resolution}_rewards as apr_rewards
             FROM {self.environment}_arbitrum_mainnet.fct_core_apr_arbitrum_mainnet apr
@@ -223,6 +225,8 @@ class SynthetixAPI:
                 CONCAT(coalesce(tk.token_symbol, collateral_type), ' (Base)') as label,
                 'Base' as chain,
                 collateral_value,
+                debt,
+                rewards_usd,
                 apr_{resolution} as apr,
                 apr_{resolution}_rewards as apr_rewards
             FROM {self.environment}_base_mainnet.fct_core_apr_base_mainnet apr
@@ -234,6 +238,8 @@ class SynthetixAPI:
             label,
             chain,
             collateral_value,
+            debt,
+            rewards_usd,
             apr,
             apr_rewards
         FROM tvl

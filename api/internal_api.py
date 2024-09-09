@@ -41,7 +41,10 @@ def get_connection(db_config):
 
 
 class SynthetixAPI:
-    SUPPORTED_CHAINS = ["Arbitrum", "Base"]
+    SUPPORTED_CHAINS = {
+        "arbitrum_mainnet": "Arbitrum",
+        "base_mainnet": "Base",
+    }
 
     def __init__(
         self, db_config: dict, environment: str = "prod", streamlit: bool = True
@@ -90,11 +93,50 @@ class SynthetixAPI:
             str: SQL-friendly chain label string
         """
         if chain == "All":
-            return ", ".join(f"'{c}'" for c in self.SUPPORTED_CHAINS)
-        elif chain in self.SUPPORTED_CHAINS:
+            return ", ".join(f"'{c}'" for c in self.SUPPORTED_CHAINS.values())
+        elif chain in self.SUPPORTED_CHAINS.values():
             return f"'{chain}'"
         else:
             raise ValueError(f"Unsupported chain: {chain}")
+
+    def _generate_union_query(
+        self,
+        table_name: str,
+        columns: List[str],
+        join_table: str = None,
+        join_condition: str = None,
+    ) -> str:
+        """
+        Generate a union query for a given table.
+
+        Args:
+            table_name (str): The name of the table to query.
+            columns (List[str]): The columns to select from the table.
+            join_table (str): The name of the table to join with.
+            join_condition (str): The condition to join on.
+
+        Returns:
+            str: The union query.
+        """
+        union_queries = []
+        columns_str = ", ".join(columns)
+        for schema_name, chain_name in self.SUPPORTED_CHAINS.items():
+            query = f"""
+            SELECT
+                {columns_str},
+                '{chain_name}' as chain
+            FROM {self.environment}_{schema_name}.{table_name}_{schema_name} {table_name}
+            """
+
+            if join_table and join_condition:
+                query += f"""
+                LEFT JOIN {self.environment}_seeds.{schema_name}_{join_table} {join_table}
+                    ON {join_condition}
+                """
+
+            union_queries.append(query)
+
+        return " UNION ALL ".join(union_queries)
 
     # queries
     def get_volume(
@@ -140,42 +182,31 @@ class SynthetixAPI:
         Args:
             start_date (datetime): Start date for the query
             end_date (datetime): End date for the query
-            chain (str): Chain to query (e.g., 'arbitrum_mainnet', 'base_mainnet')
+            chain (str): Chain to query (e.g. 'Arbitrum', 'Base', 'All')
 
         Returns:
             pandas.DataFrame: Core stats with columns 'ts', 'chain', 'collateral_value'
         """
         label = self._get_chain_label(chain)
-        query = f"""
-        WITH tvl AS (
-            SELECT
-                ts,
-                'Arbitrum' AS chain,
-                SUM(collateral_value) AS collateral_value
-            FROM {self.environment}_arbitrum_mainnet.fct_core_apr_arbitrum_mainnet AS apr
-            GROUP BY ts, chain
-
-            UNION ALL
-
-            SELECT
-                ts,
-                'Base' AS chain,
-                SUM(collateral_value) AS collateral_value
-            FROM {self.environment}_base_mainnet.fct_core_apr_base_mainnet AS apr
-            GROUP BY ts, chain
-
-            ORDER BY ts
+        union_query = self._generate_union_query(
+            table_name="fct_core_apr",
+            columns=["ts", "collateral_value"],
         )
-
+        query = f"""
+        WITH core_stats_by_chain AS (
+            {union_query}
+        )
+        
         SELECT
             ts,
             chain,
-            collateral_value
-        FROM tvl
+            SUM(collateral_value) AS collateral_value
+        FROM core_stats_by_chain
         WHERE 
             ts >= '{start_date}' and ts <= '{end_date}'
             AND chain in ({label})
-
+        GROUP BY ts, chain
+        ORDER BY ts
         """
         with self.get_connection() as conn:
             return pd.read_sql_query(query, conn)
@@ -189,67 +220,62 @@ class SynthetixAPI:
     ) -> pd.DataFrame:
         """
         Get core stats by collateral.
-        This function retrieves detailed core stats including
-        collateral value, debt, PNL, rewards, issuance, and APR
-        for each collateral type on both Arbitrum and Base chains.
 
         Args:
             start_date (datetime): Start date for the query
             end_date (datetime): End date for the query
             chain (str): Chain to query (e.g., 'arbitrum_mainnet', 'base_mainnet')
-            resolution (str): Data resolution ('daily' or 'hourly')
+            resolution (str): Data resolution ('24h', '1d', '28d')
 
         Returns:
             pandas.DataFrame: TVL data with columns:
-                'ts', 'label', 'chain', 'collateral_value', 'apr', 'debt', 'rewards_usd'
+                'ts', 'label', 'chain', 'collateral_value', 'debt', 'rewards_usd', 'apr', 'apr_rewards'
         """
         label = self._get_chain_label(chain)
+        union_query = self._generate_union_query(
+            table_name="fct_core_apr",
+            columns=[
+                "ts",
+                "token_symbol",
+                "collateral_value",
+                "debt",
+                "rewards_usd",
+                f"apr_{resolution} as apr",
+                f"apr_{resolution}_rewards as apr_rewards",
+            ],
+            join_table="tokens",
+            join_condition="lower(fct_core_apr.collateral_type) = lower(tokens.token_address)",
+        )
         query = f"""
-        WITH tvl AS (
-            SELECT 
-                ts,
-                CONCAT(coalesce(tk.token_symbol, collateral_type), ' (Arbitrum)') as label,
-                'Arbitrum' as chain,
-                collateral_value,
-                debt,
-                rewards_usd,
-                apr_{resolution} as apr,
-                apr_{resolution}_rewards as apr_rewards
-            FROM {self.environment}_arbitrum_mainnet.fct_core_apr_arbitrum_mainnet apr
-            LEFT JOIN {self.environment}_seeds.arbitrum_mainnet_tokens tk on lower(apr.collateral_type) = lower(tk.token_address)
-
-            UNION ALL
-
-            SELECT 
-                ts,
-                CONCAT(coalesce(tk.token_symbol, collateral_type), ' (Base)') as label,
-                'Base' as chain,
-                collateral_value,
-                debt,
-                rewards_usd,
-                apr_{resolution} as apr,
-                apr_{resolution}_rewards as apr_rewards
-            FROM {self.environment}_base_mainnet.fct_core_apr_base_mainnet apr
-            LEFT JOIN {self.environment}_seeds.base_mainnet_tokens tk on lower(apr.collateral_type) = lower(tk.token_address)
+        WITH core_stats_by_collateral AS (
+            {union_query}
         )
 
         SELECT 
             ts,
-            label,
             chain,
+            token_symbol,
             collateral_value,
             debt,
             rewards_usd,
             apr,
             apr_rewards
-        FROM tvl
+        FROM core_stats_by_collateral
         WHERE 
             ts >= '{start_date}' and ts <= '{end_date}'
             AND chain in ({label})
         ORDER BY ts
         """
         with self.get_connection() as conn:
-            return pd.read_sql_query(query, conn)
+            df = pd.read_sql_query(query, conn)
+
+        # Post-process the dataframe to add the label column
+        df["label"] = df.apply(
+            lambda row: f"{row['token_symbol'] or row['collateral_type']} ({row['chain']})",
+            axis=1,
+        )
+
+        return df
 
     def get_perps_stats_by_chain(
         self,
@@ -268,26 +294,16 @@ class SynthetixAPI:
 
         Returns:
             pandas.DataFrame: Perps stats with columns:
-                'ts', 'volume', 'exchange_fees'
+                'ts', 'chain', 'volume', 'exchange_fees'
         """
         label = self._get_chain_label(chain)
+        union_query = self._generate_union_query(
+            table_name=f"fct_perp_stats_{resolution}",
+            columns=["ts", "volume", "exchange_fees"],
+        )
         query = f"""
-        WITH perps_stats AS (
-            SELECT
-                ts,
-                'Arbitrum' as chain,
-                volume,
-                exchange_fees
-            FROM {self.environment}_arbitrum_mainnet.fct_perp_stats_{resolution}_arbitrum_mainnet
-
-            UNION ALL
-
-            SELECT
-                ts,
-                'Base' as chain,
-                volume,
-                exchange_fees
-            FROM {self.environment}_base_mainnet.fct_perp_stats_{resolution}_base_mainnet
+        WITH perps_stats_by_chain AS (
+            {union_query}
         )
 
         SELECT
@@ -295,7 +311,7 @@ class SynthetixAPI:
             chain,
             volume,
             exchange_fees
-        FROM perps_stats
+        FROM perps_stats_by_chain
         WHERE
             ts >= '{start_date}' and ts <= '{end_date}'
             AND chain in ({label})

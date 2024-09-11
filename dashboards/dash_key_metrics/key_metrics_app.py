@@ -24,7 +24,7 @@ def load_api():
 st.session_state.api = load_api()
 
 # pages
-cross_chain = st.Page("views/cross_chain.py", title="Cross-chain stats")
+cross_chain = st.Page("views/cross_chain.py", title="Synthetix V3")
 lp = st.Page("views/lp.py", title="Liquidity Providers")
 perps = st.Page("views/perps.py", title="Perps")
 token = st.Page("views/token.py", title="$SNX Token")

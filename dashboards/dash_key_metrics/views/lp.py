@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 
 import streamlit as st
 
-from dashboards.utils.charts import chart_area
+from dashboards.utils.charts import chart_area, chart_lines, chart_bars
 from dashboards.utils.date_utils import get_start_date
 
 st.markdown("# Liquidity Providers")
@@ -56,14 +56,14 @@ chart_core_tvl_by_collateral = chart_area(
     title="TVL",
     color="label",
 )
-chart_core_apr_by_collateral = chart_area(
+chart_core_apr_by_collateral = chart_lines(
     data["core_stats_by_collateral"],
     x_col="ts",
     y_cols="apr",
     title="APR",
     color="label",
 )
-chart_core_apr_rewards_by_collateral = chart_area(
+chart_core_apr_rewards_by_collateral = chart_lines(
     data["core_stats_by_collateral"],
     x_col="ts",
     y_cols="apr_rewards",
@@ -77,7 +77,7 @@ chart_core_debt_by_collateral = chart_area(
     title="Debt",
     color="label",
 )
-chart_core_rewards_usd_by_collateral = chart_area(
+chart_core_rewards_usd_by_collateral = chart_bars(
     data["core_stats_by_collateral"],
     x_col="ts",
     y_cols="rewards_usd",

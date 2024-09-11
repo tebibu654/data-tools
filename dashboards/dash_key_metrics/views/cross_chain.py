@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 import streamlit as st
 
 from dashboards.utils.charts import chart_area, chart_lines, chart_bars
+from dashboards.utils.date_utils import get_start_date
 
 st.markdown("# Cross-chain stats")
 
@@ -15,15 +16,7 @@ if "date_range" not in st.session_state:
 @st.cache_data
 def fetch_data(date_range, chain):
     end_date = datetime.now()
-
-    if date_range == "30d":
-        start_date = datetime.now() - timedelta(days=30)
-    elif date_range == "90d":
-        start_date = datetime.now() - timedelta(days=90)
-    elif date_range == "1y":
-        start_date = datetime.now() - timedelta(days=365)
-    else:
-        start_date = datetime(2020, 1, 1)
+    start_date = get_start_date(date_range)
 
     core_stats_by_collateral = st.session_state.api.get_core_stats_by_collateral(
         start_date=start_date.date(),

@@ -335,12 +335,12 @@ class SynthetixAPI:
 
         Returns:
             pandas.DataFrame: Perps markets history with columns:
-                'ts', 'chain', 'market_symbol', 'size_usd'
+                'ts', 'chain', 'market_symbol', 'size_usd', 'long_oi_pct', 'short_oi_pct'
         """
         label = self._get_chain_label(chain)
         union_query = self._generate_union_query(
             table_name="fct_perp_market_history",
-            columns=["ts", "market_symbol", "size_usd"],
+            columns=["ts", "market_symbol", "size_usd", "long_oi_pct", "short_oi_pct"],
         )
         query = f"""
         WITH perps_markets_history AS (
@@ -350,8 +350,10 @@ class SynthetixAPI:
         SELECT
             ts,
             chain,
-            market_symbol,
-            size_usd
+            CONCAT(market_symbol, ' (', chain, ')') as market_symbol,
+            size_usd,
+            long_oi_pct,
+            short_oi_pct
         FROM perps_markets_history
         WHERE
             ts >= '{start_date}' and ts <= '{end_date}'

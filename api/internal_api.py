@@ -318,3 +318,45 @@ class SynthetixAPI:
         """
         with self.get_connection() as conn:
             return pd.read_sql_query(query, conn)
+
+    def get_perps_markets_history(
+        self,
+        start_date: datetime,
+        end_date: datetime,
+        chain: str = "All",
+    ) -> pd.DataFrame:
+        """
+        Get perps markets history.
+
+        Args:
+            start_date (datetime): Start date for the query
+            end_date (datetime): End date for the query
+            chain (str): Chain to query (e.g., 'arbitrum_mainnet', 'base_mainnet')
+
+        Returns:
+            pandas.DataFrame: Perps markets history with columns:
+                'ts', 'chain', 'market_symbol', 'size_usd'
+        """
+        label = self._get_chain_label(chain)
+        union_query = self._generate_union_query(
+            table_name="fct_perp_market_history",
+            columns=["ts", "market_symbol", "size_usd"],
+        )
+        query = f"""
+        WITH perps_markets_history AS (
+            {union_query}
+        )
+        
+        SELECT
+            ts,
+            chain,
+            market_symbol,
+            size_usd
+        FROM perps_markets_history
+        WHERE
+            ts >= '{start_date}' and ts <= '{end_date}'
+            AND chain in ({label})
+        ORDER BY ts
+        """
+        with self.get_connection() as conn:
+            return pd.read_sql_query(query, conn)

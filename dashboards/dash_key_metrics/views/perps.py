@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 
 import streamlit as st
 
-from dashboards.utils.charts import chart_bars
+from dashboards.utils.charts import chart_bars, chart_lines
 from dashboards.utils.date_utils import get_start_date
 
 st.markdown("# Perps")
@@ -11,6 +11,8 @@ if "chain" not in st.session_state:
     st.session_state.chain = "All"
 if "date_range" not in st.session_state:
     st.session_state.date_range = "30d"
+if "asset" not in st.session_state:
+    st.session_state.asset = "ETH"
 
 
 @st.cache_data
@@ -24,9 +26,15 @@ def fetch_data(date_range, chain):
         chain=chain,
         resolution="daily",
     )
+    perps_markets_history = st.session_state.api.get_perps_markets_history(
+        start_date=start_date.date(),
+        end_date=end_date.date(),
+        chain=chain,
+    )
 
     return {
         "perps_stats_by_chain": perps_stats_by_chain,
+        "perps_markets_history": perps_markets_history,
     }
 
 
@@ -49,6 +57,11 @@ with filter_col2:
 
 data = fetch_data(st.session_state.date_range, st.session_state.chain)
 
+assets = sorted(
+    data["perps_markets_history"]["market_symbol"].unique(),
+    key=lambda x: (x != "ETH", x != "BTC", x),
+)
+
 chart_perps_volume_by_chain = chart_bars(
     data["perps_stats_by_chain"],
     x_col="ts",
@@ -63,10 +76,20 @@ chart_perps_exchange_fees_by_chain = chart_bars(
     title="Exchange Fees",
     color="chain",
 )
-
+chart_perps_markets_history = chart_lines(
+    data["perps_markets_history"][
+        data["perps_markets_history"]["market_symbol"] == st.session_state.asset
+    ],
+    x_col="ts",
+    y_cols="size_usd",
+    title="Open Interest (Total)",
+    color="chain",
+)
 
 chart_col1, chart_col2 = st.columns(2)
 with chart_col1:
     st.plotly_chart(chart_perps_volume_by_chain, use_container_width=True)
+    asset = st.selectbox("Select asset", assets, index=0, key="asset")
+    st.plotly_chart(chart_perps_markets_history, use_container_width=True)
 with chart_col2:
     st.plotly_chart(chart_perps_exchange_fees_by_chain, use_container_width=True)

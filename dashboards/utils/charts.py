@@ -75,7 +75,12 @@ def chart_many_bars(
         template=PLOTLY_TEMPLATE,
     )
     fig = set_axes(fig, x_format, y_format)
-    return update_layout(fig)
+    fig.update_xaxes(title_text="", automargin=True)
+    fig.update_yaxes(title_text="")
+    fig.update_layout(
+        font=dict(family=FONT_FAMILY),
+    )
+    return fig
 
 
 def chart_many_lines(

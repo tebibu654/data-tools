@@ -18,7 +18,8 @@ st.markdown(hide_footer, unsafe_allow_html=True)
 # set the API
 @st.cache_resource
 def load_api():
-    return SynthetixAPI(db_config=get_db_config(streamlit=True))
+    DB_ENV = st.secrets.database.DB_ENV
+    return SynthetixAPI(db_config=get_db_config(streamlit=True), environment=DB_ENV)
 
 
 st.session_state.api = load_api()

@@ -7,7 +7,7 @@ from dashboards.utils.data import export_data
 from dashboards.utils.charts import chart_many_bars
 
 
-@st.cache_data
+@st.cache_data(ttl="30m")
 def fetch_data(chain, start_date, end_date, resolution):
     """
     Fetches data from the database using the API based on the provided filters.
@@ -53,7 +53,7 @@ def fetch_data(chain, start_date, end_date, resolution):
     }
 
 
-@st.cache_data
+@st.cache_data(ttl="30m")
 def make_charts(data):
     """
     Creates charts based on the fetched data.

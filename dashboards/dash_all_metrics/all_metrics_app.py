@@ -24,11 +24,11 @@ def load_api():
 st.session_state.api = load_api()
 
 # pages
-all_chains = st.Page("pages/all_chains.py", title="Synthetix V3")
-ethereum = st.Page("pages/ethereum.py", title="Ethereum")
-base = st.Page("pages/base.py", title="Base")
-arbitrum = st.Page("pages/arbitrum.py", title="Arbitrum")
-optimism = st.Page("pages/optimism.py", title="Optimism")
+all_chains = st.Page("chain_pages/all_chains.py", title="Synthetix V3")
+ethereum = st.Page("chain_pages/ethereum.py", title="Ethereum")
+base = st.Page("chain_pages/base.py", title="Base")
+arbitrum = st.Page("chain_pages/arbitrum.py", title="Arbitrum")
+optimism = st.Page("chain_pages/optimism.py", title="Optimism")
 
 
 # navigation

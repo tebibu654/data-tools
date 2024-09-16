@@ -7,7 +7,7 @@ from dashboards.utils.charts import chart_area, chart_lines
 from dashboards.utils.date_utils import get_start_date
 
 
-@st.cache_data
+@st.cache_data(ttl="30m")
 def fetch_data(start_date, end_date, resolution):
     api = st.session_state.api
 
@@ -105,7 +105,7 @@ def fetch_data(start_date, end_date, resolution):
     }
 
 
-@st.cache_data
+@st.cache_data(ttl="30m")
 def make_charts(data):
     return {
         "tvl_collateral": chart_area(

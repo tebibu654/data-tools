@@ -6,7 +6,7 @@ from dashboards.utils.data import export_data
 from dashboards.utils.charts import chart_bars
 
 
-@st.cache_data
+@st.cache_data(ttl="30m")
 def fetch_data(start_date, end_date, resolution):
     api = st.session_state.api
 
@@ -59,7 +59,7 @@ def fetch_data(start_date, end_date, resolution):
     }
 
 
-@st.cache_data
+@st.cache_data(ttl="30m")
 def make_charts(data):
     return {
         "volume": chart_bars(

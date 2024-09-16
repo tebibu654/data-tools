@@ -14,10 +14,15 @@ pages = {
     "Perps V2 Markets": perp_markets.main,
     "Perps V2 Integrators": perp_integrators.main,
 }
-state_page = None
+
+page_query = st.query_params["page"] if "page" in st.query_params else None
 state_page = st.sidebar.radio(
     "Optimism",
     tuple(pages.keys()),
-    index=tuple(pages.keys()).index(state_page) if state_page else 0,
+    index=(
+        tuple(pages.keys()).index(page_query)
+        if page_query and page_query in pages.keys()
+        else 0
+    ),
 )
 pages[state_page]()

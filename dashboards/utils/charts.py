@@ -192,3 +192,38 @@ def chart_oi(df, x_col: str, title: str):
     )
     fig.update_yaxes(tickformat=".0%")
     return update_layout(fig)
+
+
+def chart_oi(df, x_col, title):
+    fig = px.area(
+        df,
+        x=x_col,
+        y=["short_oi_pct", "long_oi_pct"],
+        line_shape="hv",
+        color_discrete_sequence=["red", "green"],
+        title=title,
+    )
+
+    # remove axis labels
+    fig.update_traces(hovertemplate=None)
+    fig.update_xaxes(
+        title_text="",
+        automargin=True,
+    )
+    fig.update_yaxes(title_text="", tickformat=".0%")
+
+    fig.update_layout(
+        hovermode="x unified",
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1.02,
+            xanchor="right",
+            x=1,
+            title=None,
+        ),
+        font=dict(
+            family="sans-serif",
+        ),
+    )
+    return fig

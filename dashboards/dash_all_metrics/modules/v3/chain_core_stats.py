@@ -242,14 +242,16 @@ def main():
         st.plotly_chart(charts["tvl"], use_container_width=True)
         st.plotly_chart(charts["hourly_pnl"], use_container_width=True)
         st.plotly_chart(charts["hourly_issuance"], use_container_width=True)
-        st.plotly_chart(charts["hourly_rewards"], use_container_width=True)
-        st.plotly_chart(charts["apr_token"], use_container_width=True)
 
     with col2:
         st.plotly_chart(charts["debt"], use_container_width=True)
         st.plotly_chart(charts["pnl"], use_container_width=True)
         st.plotly_chart(charts["issuance"], use_container_width=True)
-        st.plotly_chart(charts["hourly_rewards_token"], use_container_width=True)
+
+    # make these charts full width
+    st.plotly_chart(charts["hourly_rewards"], use_container_width=True)
+    st.plotly_chart(charts["apr_token"], use_container_width=True)
+    st.plotly_chart(charts["hourly_rewards_token"], use_container_width=True)
 
     # Display Top Delegators table
     st.markdown("## Top Delegators")

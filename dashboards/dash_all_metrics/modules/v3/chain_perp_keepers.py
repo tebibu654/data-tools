@@ -27,7 +27,8 @@ def fetch_data(chain, start_date, end_date, resolution):
         f"""
         SELECT
             ts,
-            keeper,
+            keeper as keeper_full,
+            CONCAT(SUBSTRING(keeper, 1, 6), '...', SUBSTRING(keeper, length(keeper)-3, length(keeper))) as keeper,
             trades,
             trades_pct,
             amount_settled,

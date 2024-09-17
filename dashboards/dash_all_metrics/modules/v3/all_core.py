@@ -48,6 +48,25 @@ def fetch_data(start_date, end_date, resolution):
         FROM {api.environment}_base_mainnet.fct_core_apr_base_mainnet apr
         LEFT JOIN {api.environment}_seeds.base_mainnet_tokens tk on lower(apr.collateral_type) = lower(tk.token_address)
         WHERE ts >= '{start_date}' and ts <= '{end_date}'
+
+        UNION ALL
+        
+        SELECT 
+            ts,
+            CONCAT(coalesce(tk.token_symbol, collateral_type), ' (Ethereum)') as label,
+            collateral_value,
+            debt,
+            hourly_pnl,
+            rewards_usd,
+            hourly_issuance,
+            cumulative_issuance,
+            cumulative_pnl,
+            apr_{resolution} as apr,
+            apr_{resolution}_pnl as apr_pnl,
+            apr_{resolution}_rewards as apr_rewards
+        FROM {api.environment}_eth_mainnet.fct_core_apr_eth_mainnet apr
+        LEFT JOIN {api.environment}_seeds.eth_mainnet_tokens tk on lower(apr.collateral_type) = lower(tk.token_address)
+        WHERE ts >= '{start_date}' and ts <= '{end_date}'
         
         ORDER BY ts
     """
@@ -90,8 +109,28 @@ def fetch_data(start_date, end_date, resolution):
             WHERE ts >= '{start_date}' and ts <= '{end_date}'
         ) as b
         group by ts, label
+        ),
+        eth as (
+        select
+            ts,
+            label,
+            sum(collateral_value) as collateral_value,
+            sum(cumulative_pnl) as cumulative_pnl
+        from (
+            SELECT 
+                ts,
+                'Ethereum' as label,
+                collateral_value,
+                cumulative_pnl
+            FROM {api.environment}_eth_mainnet.fct_core_apr_eth_mainnet apr
+            LEFT JOIN {api.environment}_seeds.eth_mainnet_tokens tk on lower(apr.collateral_type) = lower(tk.token_address)
+            WHERE ts >= '{start_date}' and ts <= '{end_date}'
+        ) as b
+        group by ts, label
         )
     
+        select * from eth
+        union all
         select * from arbitrum
         union all
         select * from base

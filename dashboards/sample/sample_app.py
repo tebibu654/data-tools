@@ -9,7 +9,11 @@ st.set_page_config(
 )
 
 # set the API
-st.session_state.api = SynthetixAPI(db_config=get_db_config(streamlit=True))
+@st.cache_resource
+def load_api():
+    return SynthetixAPI(db_config=get_db_config(streamlit=True))
+
+st.session_state.api = load_api()
 
 
 hide_footer = """

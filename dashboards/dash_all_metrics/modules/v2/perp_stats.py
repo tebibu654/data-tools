@@ -125,7 +125,7 @@ def main():
     if "end_date" not in st.session_state:
         st.session_state.end_date = datetime.today().date()
 
-    st.markdown("## Perps V2 Stats")
+    st.markdown("## Perps V2")
 
     # Filters section
     with st.expander("Filters"):

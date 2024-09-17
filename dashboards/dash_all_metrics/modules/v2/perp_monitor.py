@@ -101,6 +101,7 @@ def make_charts(data):
             ["trades"],
             "Trades",
             "market",
+            y_format="#",
         ),
         "liquidations": chart_many_bars(
             df,
@@ -108,6 +109,7 @@ def make_charts(data):
             ["liquidations"],
             "Liquidations",
             "market",
+            y_format="#",
         ),
     }
 
@@ -124,7 +126,7 @@ def main():
     if "end_date" not in st.session_state:
         st.session_state.end_date = datetime.today().date()
 
-    st.markdown("## Perps V2 Monitor")
+    st.markdown("## Perps V2: Activity Monitor")
 
     # Filters section
     with st.expander("Filters"):

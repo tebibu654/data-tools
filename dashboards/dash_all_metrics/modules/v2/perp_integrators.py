@@ -143,6 +143,8 @@ def main():
     """
     The main function that sets up the Streamlit dashboard.
     """
+    st.markdown("## Perps V2: Integrators")
+
     # Initialize session state for filters if not already set
     if "resolution" not in st.session_state:
         st.session_state.resolution = "daily"
@@ -151,7 +153,6 @@ def main():
     if "end_date" not in st.session_state:
         st.session_state.end_date = datetime.today().date()
 
-    st.markdown("## Integrator Stats")
 
     # Filters section
     with st.expander("Filters"):

@@ -153,7 +153,7 @@ def main():
         )
 
     # Title
-    st.markdown("## V3 Perps Integrators")
+    st.markdown("## Perps: Integrators")
 
     # Filters section
     with st.expander("Filters"):

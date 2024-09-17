@@ -178,6 +178,8 @@ def main():
     """
     The main function that sets up the Streamlit dashboard.
     """
+    st.markdown(f"## Liquidity Pools")
+
     # Initialize session state for filters if not already set
     if "resolution" not in st.session_state:
         st.session_state.resolution = "7d"

@@ -101,7 +101,7 @@ def main():
         st.session_state.end_date = datetime.today().date() + timedelta(days=1)
 
     # Title
-    st.markdown("## V3 Spot Market")
+    st.markdown("## Spot Markets and Wrappers")
 
     # Filters section
     with st.expander("Filters"):

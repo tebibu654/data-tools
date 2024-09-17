@@ -142,7 +142,7 @@ def main():
         st.session_state.end_date = datetime.today().date() + timedelta(days=1)
 
     # Title
-    st.markdown("## V3 Perps Markets")
+    st.markdown("## Perps: Market Overview")
 
     # Filters section
     with st.expander("Filters"):

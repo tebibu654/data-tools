@@ -153,7 +153,7 @@ def make_charts(data):
 
 
 def main():
-    st.markdown("## V3 Perps Accounts")
+    st.markdown("## Perps: Account Summary")
 
     # Initialize session state for filters if not already set
     if "account_id" not in st.session_state:

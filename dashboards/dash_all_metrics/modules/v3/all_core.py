@@ -149,7 +149,7 @@ def make_charts(data):
 
 def main():
     ## title
-    st.markdown("# LPs: All Chains")
+    st.markdown("# Liquidity Pools")
 
     ## inputs
     with st.expander("Filters"):

@@ -162,6 +162,8 @@ def main():
     """
     The main function that sets up the Streamlit dashboard.
     """
+    st.markdown("## Perps V2: Market Overview")
+
     # Initialize session state for filters if not already set
     if "resolution" not in st.session_state:
         st.session_state.resolution = "daily"
@@ -171,9 +173,6 @@ def main():
         st.session_state.end_date = datetime.today().date()
     if "market" not in st.session_state:
         st.session_state.market = "ETH"
-
-    # Title
-    st.markdown("## V2 Markets")
 
     # Filters section
     with st.expander("Filters"):

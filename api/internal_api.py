@@ -41,14 +41,10 @@ def get_connection(db_config):
 
 
 class SynthetixAPI:
-    SUPPORTED_CHAINS_CORE = {
+    SUPPORTED_CHAINS = {
         "arbitrum_mainnet": "Arbitrum",
         "base_mainnet": "Base",
         "eth_mainnet": "Ethereum",
-    }
-    SUPPORTED_CHAINS_PERPS = {
-        "arbitrum_mainnet": "Arbitrum",
-        "base_mainnet": "Base",
     }
 
     def __init__(
@@ -149,7 +145,7 @@ class SynthetixAPI:
         Returns:
             pandas.DataFrame: Core stats with columns 'ts', 'chain', 'collateral_value'
         """
-        chain_label = self.SUPPORTED_CHAINS_CORE[chain]
+        chain_label = self.SUPPORTED_CHAINS[chain]
         query = f"""
         SELECT
             ts,
@@ -185,7 +181,7 @@ class SynthetixAPI:
                 'ts', 'label', 'chain', 'collateral_value', 'debt',
                 'rewards_usd', 'apr', 'apr_rewards'
         """
-        chain_label = self.SUPPORTED_CHAINS_CORE[chain]
+        chain_label = self.SUPPORTED_CHAINS[chain]
         query = f"""
         SELECT 
             ts,
@@ -228,7 +224,7 @@ class SynthetixAPI:
             pandas.DataFrame: Perps stats with columns:
                 'ts', 'chain', 'volume', 'exchange_fees'
         """
-        chain_label = self.SUPPORTED_CHAINS_PERPS[chain]
+        chain_label = self.SUPPORTED_CHAINS[chain]
         query = f"""
         SELECT
             ts,
@@ -261,7 +257,7 @@ class SynthetixAPI:
             pandas.DataFrame: Perps markets history with columns:
                 'ts', 'chain', 'market_symbol', 'size_usd', 'long_oi_pct', 'short_oi_pct'
         """
-        chain_label = self.SUPPORTED_CHAINS_PERPS[chain]
+        chain_label = self.SUPPORTED_CHAINS[chain]
         query = f"""
         SELECT
             ts,

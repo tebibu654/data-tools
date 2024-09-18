@@ -138,6 +138,19 @@ class SynthetixAPI:
 
         return " UNION ALL ".join(union_queries)
 
+    def _run_query(self, query: str) -> pd.DataFrame:
+        """
+        Run a SQL query and return the results as a DataFrame.
+
+        Args:
+            query (str): The SQL query to run.
+
+        Returns:
+            pandas.DataFrame: The query results.
+        """
+        with self.get_connection() as conn:
+            return pd.read_sql_query(query, conn)
+
     # queries
     def get_volume(
         self,

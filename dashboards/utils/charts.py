@@ -44,10 +44,10 @@ def update_layout(fig, orientation: str = "v"):
         hovermode=f"{'y' if orientation == 'h' else 'x'} unified",
         legend=dict(
             orientation="h",
-            yanchor="bottom",
-            y=1.02,
-            xanchor="right",
-            x=1,
+            yanchor="top",
+            y=-0.2,
+            xanchor="center",
+            x=0.5,
             title=None,
         ),
         font=dict(family=FONT_FAMILY),
@@ -75,7 +75,12 @@ def chart_many_bars(
         template=PLOTLY_TEMPLATE,
     )
     fig = set_axes(fig, x_format, y_format)
-    return update_layout(fig)
+    fig.update_xaxes(title_text="", automargin=True)
+    fig.update_yaxes(title_text="")
+    fig.update_layout(
+        font=dict(family=FONT_FAMILY),
+    )
+    return fig
 
 
 def chart_many_lines(

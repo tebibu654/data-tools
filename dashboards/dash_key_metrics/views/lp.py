@@ -1,9 +1,11 @@
 from datetime import datetime, timedelta
 
 import streamlit as st
+import pandas as pd
 
 from dashboards.utils.charts import chart_area, chart_lines, chart_bars
 from dashboards.utils.date_utils import get_start_date
+from dashboards.dash_key_metrics.constants import SUPPORTED_CHAINS_CORE
 
 st.markdown("# Liquidity Providers")
 
@@ -13,22 +15,33 @@ if "date_range" not in st.session_state:
     st.session_state.date_range = "30d"
 
 
-@st.cache_data
+@st.cache_data(ttl="30m")
 def fetch_data(date_range, chain):
     end_date = datetime.now()
     start_date = get_start_date(date_range)
 
-    core_stats_by_collateral = st.session_state.api.get_core_stats_by_collateral(
-        start_date=start_date.date(),
-        end_date=end_date.date(),
-        chain=chain,
-        resolution="28d",
-    )
+    chains_to_fetch = [*SUPPORTED_CHAINS_CORE] if chain == "All" else [chain]
+
+    core_stats_by_collateral = [
+        st.session_state.api.get_core_stats_by_collateral(
+            start_date=start_date.date(),
+            end_date=end_date.date(),
+            chain=current_chain,
+            resolution="28d",
+        )
+        for current_chain in chains_to_fetch
+    ]
 
     return {
-        "core_stats_by_collateral": core_stats_by_collateral,
+        "core_stats_by_collateral": (
+            pd.concat(core_stats_by_collateral, ignore_index=True)
+            if core_stats_by_collateral
+            else pd.DataFrame()
+        ),
     }
 
+
+data = fetch_data(st.session_state.date_range, st.session_state.chain)
 
 filter_col1, filter_col2 = st.columns(2)
 
@@ -42,12 +55,11 @@ with filter_col1:
 with filter_col2:
     st.radio(
         "Select chain",
-        ["All", "Arbitrum", "Base"],
+        ["All", *SUPPORTED_CHAINS_CORE],
         index=0,
+        format_func=lambda x: "All" if x == "All" else SUPPORTED_CHAINS_CORE[x],
         key="chain",
     )
-
-data = fetch_data(st.session_state.date_range, st.session_state.chain)
 
 chart_core_tvl_by_collateral = chart_area(
     data["core_stats_by_collateral"],
@@ -59,14 +71,14 @@ chart_core_tvl_by_collateral = chart_area(
 chart_core_apr_by_collateral = chart_lines(
     data["core_stats_by_collateral"],
     x_col="ts",
-    y_cols="apr",
-    title="APR",
+    y_cols="apr_28d",
+    title="APR (28d average)",
     color="label",
 )
 chart_core_apr_rewards_by_collateral = chart_lines(
     data["core_stats_by_collateral"],
     x_col="ts",
-    y_cols="apr_rewards",
+    y_cols="apr_28d_rewards",
     title="APR (Rewards)",
     color="label",
 )

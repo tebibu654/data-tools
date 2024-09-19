@@ -6,9 +6,9 @@ This directory contains streamlit dashboards for visualizing Synthetix data.
 
 Each dashboard is organized like this:
 
-- `app.py`: Main application entry point, con
-- `views/`: Page-specific content
-- `modules/`: Reusable dashboard components
+- `app.py`: Main application entry point, handling API resources and state management
+- `views/`: Page content, which can be a standalone page or handle navigation between modules
+- `modules/` (optional): Reusable dashboard components
 
 ## features
 

@@ -273,3 +273,34 @@ class SynthetixAPI:
         """
         with self.get_connection() as conn:
             return pd.read_sql_query(query, conn)
+
+    def get_snx_token_buyback(
+        self,
+        start_date: datetime,
+        end_date: datetime,
+        chain: str = "base_mainnet",
+    ) -> pd.DataFrame:
+        """
+        Get SNX token buyback data.
+
+        Args:
+            start_date (datetime): Start date for the query
+            end_date (datetime): End date for the query
+            chain (str): Chain to query (e.g., 'base_mainnet')
+
+        Returns:
+            pandas.DataFrame: SNX token buyback data with columns:
+                'ts', 'snx_amount', 'usd_amount'
+        """
+        query = f"""
+        SELECT
+            ts,
+            snx_amount,
+            usd_amount
+        FROM {self.environment}_{chain}.fct_buyback_daily_{chain}
+        WHERE
+            ts >= '{start_date}' and ts <= '{end_date}'
+        ORDER BY ts
+        """
+        with self.get_connection() as conn:
+            return pd.read_sql_query(query, conn)

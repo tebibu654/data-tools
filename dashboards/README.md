@@ -10,14 +10,6 @@ Each dashboard is organized like this:
 - `views/`: Page content, which can be a standalone page or handle navigation between modules
 - `modules/` (optional): Reusable dashboard components
 
-## features
-
-- Direct page linking via query parameters
-- State management using Streamlit
-- Server-side data caching
-- Shared utilities (charting, formatting, dates, etc.)
-- Easy to fork or contribute
-
 ## creating a new dashboard
 
 1. Create a new directory under `dashboards/` or copy the `sample` app
@@ -27,3 +19,11 @@ Each dashboard is organized like this:
 5. Utilize shared utilities from `dashboards/utils/`
 
 Refer to existing dashboards for examples of how to structure and implement a rich app. The `key_metrics` dashboard contains examples for usage of the data API, data caching, state management, and more.
+
+## features
+
+- A common [api](../api/) resource
+- Server-side data caching
+- State management using Streamlit
+- Shared utilities (charting, formatting, dates, etc.)
+- Easy to fork or contribute to dashboards

@@ -1,5 +1,5 @@
 import streamlit as st
-from dashboards.dash_all_metrics.modules.v2 import (
+from dashboards.all_metrics.modules.v2 import (
     perp_stats,
     perp_monitor,
     perp_markets,

@@ -1,4 +1,3 @@
-# path setup
 import streamlit as st
 from api.internal_api import SynthetixAPI, get_db_config
 
@@ -8,10 +7,12 @@ st.set_page_config(
     layout="wide",
 )
 
+
 # set the API
 @st.cache_resource
 def load_api():
     return SynthetixAPI(db_config=get_db_config(streamlit=True))
+
 
 st.session_state.api = load_api()
 

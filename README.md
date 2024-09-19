@@ -20,9 +20,9 @@ Finally, copy the `./streamlit/secrets_example.toml` file and fill it in before 
 ## tools
 
 - API
-  - SynthetixAPI class (in progress)
+  - SynthetixAPI class
   - External API wrapper (in progress)
 - Dashboards
-  - Key metrics (in progress)
-  - Deep metrics (in progress)
+  - Key metrics
+  - All metrics
   - System monitor (in progress)

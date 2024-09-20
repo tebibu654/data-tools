@@ -165,7 +165,7 @@ class SynthetixAPI:
         start_date: datetime,
         end_date: datetime,
         chain: str = "arbitrum_mainnet",
-        resolution: str = "28d",
+        resolution: str = "7d",
     ) -> pd.DataFrame:
         """
         Get core stats by collateral.

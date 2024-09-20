@@ -9,10 +9,15 @@ from dashboards.dash_key_metrics.constants import SUPPORTED_CHAINS_CORE
 
 st.markdown("# Liquidity Providers")
 
+APR_RESOLUTION = "7d"
+
 if "chain" not in st.session_state:
-    st.session_state.chain = "All"
+    st.session_state.chain = st.query_params.get("chain", "all")
 if "date_range" not in st.session_state:
-    st.session_state.date_range = "30d"
+    st.session_state.date_range = st.query_params.get("date_range", "30d")
+
+st.query_params.chain = st.session_state.chain
+st.query_params.date_range = st.session_state.date_range
 
 
 @st.cache_data(ttl="30m")
@@ -27,7 +32,7 @@ def fetch_data(date_range, chain):
             start_date=start_date.date(),
             end_date=end_date.date(),
             chain=current_chain,
-            resolution="28d",
+            resolution=APR_RESOLUTION,
         )
         for current_chain in chains_to_fetch
     ]
@@ -71,15 +76,15 @@ chart_core_tvl_by_collateral = chart_area(
 chart_core_apr_by_collateral = chart_lines(
     data["core_stats_by_collateral"],
     x_col="ts",
-    y_cols="apr_28d",
-    title="APR (28d average)",
+    y_cols=f"apr_{APR_RESOLUTION}",
+    title=f"APR ({APR_RESOLUTION} average)",
     color="label",
 )
 chart_core_apr_rewards_by_collateral = chart_lines(
     data["core_stats_by_collateral"],
     x_col="ts",
-    y_cols="apr_28d_rewards",
-    title="APR (Rewards)",
+    y_cols=f"apr_{APR_RESOLUTION}_rewards",
+    title=f"APR (Rewards {APR_RESOLUTION} average)",
     color="label",
 )
 chart_core_debt_by_collateral = chart_area(

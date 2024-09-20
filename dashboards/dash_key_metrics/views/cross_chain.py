@@ -10,12 +10,18 @@ from dashboards.dash_key_metrics.constants import (
     SUPPORTED_CHAINS_PERPS,
 )
 
-st.markdown("# Cross-chain stats")
+st.markdown("# Synthetix V3 - Overview")
+
+APR_RESOLUTION = "7d"
+PERPS_RESOLUTION = "daily"
 
 if "chain" not in st.session_state:
-    st.session_state.chain = "All"
+    st.session_state.chain = st.query_params.get("chain", "all")
 if "date_range" not in st.session_state:
-    st.session_state.date_range = "30d"
+    st.session_state.date_range = st.query_params.get("date_range", "30d")
+
+st.query_params.chain = st.session_state.chain
+st.query_params.date_range = st.session_state.date_range
 
 
 @st.cache_data(ttl="30m")
@@ -23,14 +29,14 @@ def fetch_data(date_range, chain):
     end_date = datetime.now()
     start_date = get_start_date(date_range)
 
-    chains_to_fetch = [*SUPPORTED_CHAINS_CORE] if chain == "All" else [chain]
+    chains_to_fetch = [*SUPPORTED_CHAINS_CORE] if chain == "all" else [chain]
 
     core_stats_by_collateral = [
         st.session_state.api.get_core_stats_by_collateral(
             start_date=start_date.date(),
             end_date=end_date.date(),
             chain=current_chain,
-            resolution="28d",
+            resolution=APR_RESOLUTION,
         )
         for current_chain in chains_to_fetch
         if current_chain in SUPPORTED_CHAINS_CORE
@@ -49,7 +55,7 @@ def fetch_data(date_range, chain):
             start_date=start_date.date(),
             end_date=end_date.date(),
             chain=current_chain,
-            resolution="daily",
+            resolution=PERPS_RESOLUTION,
         )
         for current_chain in chains_to_fetch
         if current_chain in SUPPORTED_CHAINS_PERPS
@@ -84,9 +90,9 @@ with filter_col1:
 with filter_col2:
     st.radio(
         "Select chain",
-        ["All", *SUPPORTED_CHAINS_CORE],
+        ["all", *SUPPORTED_CHAINS_CORE],
         index=0,
-        format_func=lambda x: "All" if x == "All" else SUPPORTED_CHAINS_CORE[x],
+        format_func=lambda x: "All" if x == "all" else SUPPORTED_CHAINS_CORE[x],
         key="chain",
     )
 
@@ -107,8 +113,8 @@ chart_core_tvl_by_collateral = chart_area(
 chart_core_apr_by_collateral = chart_lines(
     data["core_stats_by_collateral"],
     x_col="ts",
-    y_cols=f"apr_28d",
-    title="APR by Collateral (28d average)",
+    y_cols=f"apr_{APR_RESOLUTION}",
+    title="APR by Collateral (7d average)",
     color="label",
     y_format="%",
 )

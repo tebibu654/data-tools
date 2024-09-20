@@ -2,7 +2,7 @@ import streamlit as st
 from api.internal_api import SynthetixAPI, get_db_config
 
 st.set_page_config(
-    page_title="Synthetix V3 Key Metrics",
+    page_title="Synthetix Stats",
     page_icon=f"dashboards/static/favicon.ico",
     layout="wide",
 )
@@ -31,7 +31,7 @@ token = st.Page("views/token.py", title="$SNX Token")
 
 # navigation
 pages = {
-    "Synthetix V3": [cross_chain, lp, perps, token],
+    "": [cross_chain, lp, perps, token],
 }
 nav = st.navigation(pages)
 nav.run()

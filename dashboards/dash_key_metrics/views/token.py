@@ -8,8 +8,12 @@ from dashboards.utils.date_utils import get_start_date
 
 st.markdown("# SNX Token")
 
+APR_RESOLUTION = "7d"
+
 if "date_range" not in st.session_state:
-    st.session_state.date_range = "30d"
+    st.session_state.date_range = st.query_params.get("date_range", "30d")
+
+st.query_params.date_range = st.session_state.date_range
 
 
 @st.cache_data(ttl="30m")
@@ -21,7 +25,7 @@ def fetch_data(date_range):
         start_date=start_date.date(),
         end_date=end_date.date(),
         chain="eth_mainnet",
-        resolution="28d",
+        resolution=APR_RESOLUTION,
     )
 
     snx_token_buyback = st.session_state.api.get_snx_token_buyback(

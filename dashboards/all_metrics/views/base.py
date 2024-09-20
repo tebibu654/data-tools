@@ -1,5 +1,5 @@
 import streamlit as st
-from dashboards.dash_all_metrics.modules.v3 import (
+from dashboards.all_metrics.modules.v3 import (
     chain_core_stats,
     chain_perp_stats,
     chain_perp_markets,

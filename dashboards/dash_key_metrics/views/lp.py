@@ -25,7 +25,7 @@ def fetch_data(date_range, chain):
     end_date = datetime.now()
     start_date = get_start_date(date_range)
 
-    chains_to_fetch = [*SUPPORTED_CHAINS_CORE] if chain == "All" else [chain]
+    chains_to_fetch = [*SUPPORTED_CHAINS_CORE] if chain == "all" else [chain]
 
     core_stats_by_collateral = [
         st.session_state.api.get_core_stats_by_collateral(
@@ -62,7 +62,7 @@ with filter_col2:
         "Select chain",
         ["All", *SUPPORTED_CHAINS_CORE],
         index=0,
-        format_func=lambda x: "All" if x == "All" else SUPPORTED_CHAINS_CORE[x],
+        format_func=lambda x: "All" if x == "all" else SUPPORTED_CHAINS_CORE[x],
         key="chain",
     )
 

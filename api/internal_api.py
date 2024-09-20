@@ -191,7 +191,7 @@ class SynthetixAPI:
                 ' (', '{chain_label}', ')'
             ) AS label,
             collateral_value,
-            debt,
+            hourly_pnl,
             rewards_usd,
             apr_{resolution},
             apr_{resolution}_rewards

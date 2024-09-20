@@ -89,11 +89,11 @@ chart_core_apr_rewards_by_collateral = chart_lines(
     color="label",
     y_format="%",
 )
-chart_core_debt_by_collateral = chart_area(
+chart_core_debt_by_collateral = chart_bars(
     data["core_stats_by_collateral"],
     x_col="ts",
-    y_cols="debt",
-    title="Debt",
+    y_cols="hourly_pnl",
+    title="Hourly PNL",
     color="label",
 )
 chart_core_rewards_usd_by_collateral = chart_bars(

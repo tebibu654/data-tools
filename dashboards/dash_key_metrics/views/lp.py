@@ -53,14 +53,14 @@ filter_col1, filter_col2 = st.columns(2)
 with filter_col1:
     st.radio(
         "Select date range",
-        ["30d", "90d", "1y", "all"],
+        ["30d", "90d", "1y", "All"],
         index=0,
         key="date_range",
     )
 with filter_col2:
     st.radio(
         "Select chain",
-        ["All", *SUPPORTED_CHAINS_CORE],
+        ["all", *SUPPORTED_CHAINS_CORE],
         index=0,
         format_func=lambda x: "All" if x == "all" else SUPPORTED_CHAINS_CORE[x],
         key="chain",

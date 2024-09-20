@@ -83,7 +83,7 @@ filter_col1, filter_col2 = st.columns(2)
 with filter_col1:
     st.radio(
         "Select date range",
-        ["30d", "90d", "1y", "all"],
+        ["30d", "90d", "1y", "All"],
         index=0,
         key="date_range",
     )

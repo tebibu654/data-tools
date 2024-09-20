@@ -44,7 +44,7 @@ data = fetch_data(st.session_state.date_range)
 
 st.radio(
     "Select date range",
-    ["30d", "90d", "1y", "all"],
+    ["30d", "90d", "1y", "All"],
     index=0,
     key="date_range",
 )

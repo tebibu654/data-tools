@@ -79,6 +79,7 @@ chart_core_apr_by_collateral = chart_lines(
     y_cols=f"apr_{APR_RESOLUTION}",
     title=f"APR ({APR_RESOLUTION} average)",
     color="label",
+    y_format="%",
 )
 chart_core_apr_rewards_by_collateral = chart_lines(
     data["core_stats_by_collateral"],
@@ -86,6 +87,7 @@ chart_core_apr_rewards_by_collateral = chart_lines(
     y_cols=f"apr_{APR_RESOLUTION}_rewards",
     title=f"APR (Rewards {APR_RESOLUTION} average)",
     color="label",
+    y_format="%",
 )
 chart_core_debt_by_collateral = chart_area(
     data["core_stats_by_collateral"],

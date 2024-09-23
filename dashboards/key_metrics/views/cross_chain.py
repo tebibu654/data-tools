@@ -120,12 +120,12 @@ chart_core_apr_by_collateral = chart_lines(
 )
 
 
-st.plotly_chart(chart_core_apr_by_collateral, use_container_width=True)
+st.plotly_chart(chart_core_tvl_by_chain, use_container_width=True)
 
 core_chart_col1, core_chart_col2 = st.columns(2)
 
 with core_chart_col1:
-    st.plotly_chart(chart_core_tvl_by_chain, use_container_width=True)
+    st.plotly_chart(chart_core_apr_by_collateral, use_container_width=True)
 with core_chart_col2:
     st.plotly_chart(chart_core_tvl_by_collateral, use_container_width=True)
 
@@ -141,11 +141,10 @@ if st.session_state.chain in [*SUPPORTED_CHAINS_PERPS, "all"]:
         data["perps_stats"],
         x_col="ts",
         y_cols="exchange_fees",
-        title="Exchange Fees",
+        title="Perps Fees",
         color="chain",
     )
 
-    st.markdown("## Perps")
     perps_chart_col1, perps_chart_col2 = st.columns(2)
     with perps_chart_col1:
         st.plotly_chart(chart_perps_volume_by_chain, use_container_width=True)

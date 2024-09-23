@@ -141,7 +141,7 @@ if st.session_state.chain in [*SUPPORTED_CHAINS_PERPS, "all"]:
         data["perps_stats"],
         x_col="ts",
         y_cols="exchange_fees",
-        title="Exchange Fees",
+        title="Perps Fees",
         color="chain",
     )
 

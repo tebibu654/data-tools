@@ -100,7 +100,7 @@ chart_core_tvl_by_chain = chart_area(
     data["core_stats"],
     x_col="ts",
     y_cols="collateral_value",
-    title="TVL by Chain",
+    title="TVL",
     color="chain",
 )
 chart_core_tvl_by_collateral = chart_area(
@@ -129,19 +129,19 @@ with core_chart_col1:
 with core_chart_col2:
     st.plotly_chart(chart_core_tvl_by_collateral, use_container_width=True)
 
-if st.session_state.chain in [*SUPPORTED_CHAINS_PERPS, "All"]:
+if st.session_state.chain in [*SUPPORTED_CHAINS_PERPS, "all"]:
     chart_perps_volume_by_chain = chart_bars(
         data["perps_stats"],
         x_col="ts",
         y_cols="volume",
-        title="Perps Volume by Chain",
+        title="Perps Volume",
         color="chain",
     )
     chart_perps_fees_by_chain = chart_bars(
         data["perps_stats"],
         x_col="ts",
         y_cols="exchange_fees",
-        title="Exchange Fees by Chain",
+        title="Exchange Fees",
         color="chain",
     )
 

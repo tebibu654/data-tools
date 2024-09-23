@@ -5,7 +5,7 @@ import pandas as pd
 
 from dashboards.utils.charts import chart_area, chart_lines, chart_bars
 from dashboards.utils.date_utils import get_start_date
-from dashboards.dash_key_metrics.constants import SUPPORTED_CHAINS_CORE
+from dashboards.key_metrics.constants import SUPPORTED_CHAINS_CORE
 
 st.markdown("# Liquidity Providers")
 

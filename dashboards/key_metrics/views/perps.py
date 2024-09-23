@@ -5,7 +5,7 @@ import pandas as pd
 
 from dashboards.utils.charts import chart_bars, chart_lines, chart_oi
 from dashboards.utils.date_utils import get_start_date
-from dashboards.dash_key_metrics.constants import SUPPORTED_CHAINS_PERPS
+from dashboards.key_metrics.constants import SUPPORTED_CHAINS_PERPS
 
 st.markdown("# Perps")
 

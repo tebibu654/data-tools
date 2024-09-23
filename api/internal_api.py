@@ -44,6 +44,7 @@ class SynthetixAPI:
     SUPPORTED_CHAINS = {
         "arbitrum_mainnet": "Arbitrum",
         "base_mainnet": "Base",
+        "eth_mainnet": "Ethereum",
     }
 
     def __init__(
@@ -81,62 +82,6 @@ class SynthetixAPI:
             yield connection
         finally:
             connection.close()
-
-    def _get_chain_label(self, chain: str) -> str:
-        """
-        Get the SQL-friendly chain label string.
-
-        Args:
-            chain (str): Chain to query (e.g., 'Arbitrum', 'Base', 'All')
-
-        Returns:
-            str: SQL-friendly chain label string
-        """
-        if chain == "All":
-            return ", ".join(f"'{c}'" for c in self.SUPPORTED_CHAINS.values())
-        elif chain in self.SUPPORTED_CHAINS.values():
-            return f"'{chain}'"
-        else:
-            raise ValueError(f"Unsupported chain: {chain}")
-
-    def _generate_union_query(
-        self,
-        table_name: str,
-        columns: List[str],
-        join_table: str = None,
-        join_condition: str = None,
-    ) -> str:
-        """
-        Generate a union query for a given table.
-
-        Args:
-            table_name (str): The name of the table to query.
-            columns (List[str]): The columns to select from the table.
-            join_table (str): The name of the table to join with.
-            join_condition (str): The condition to join on.
-
-        Returns:
-            str: The union query.
-        """
-        union_queries = []
-        columns_str = ", ".join(columns)
-        for schema_name, chain_name in self.SUPPORTED_CHAINS.items():
-            query = f"""
-            SELECT
-                {columns_str},
-                '{chain_name}' as chain
-            FROM {self.environment}_{schema_name}.{table_name}_{schema_name} {table_name}
-            """
-
-            if join_table and join_condition:
-                query += f"""
-                LEFT JOIN {self.environment}_seeds.{schema_name}_{join_table} {join_table}
-                    ON {join_condition}
-                """
-
-            union_queries.append(query)
-
-        return " UNION ALL ".join(union_queries)
 
     def _run_query(self, query: str) -> pd.DataFrame:
         """
@@ -183,11 +128,11 @@ class SynthetixAPI:
         with self.get_connection() as conn:
             return pd.read_sql_query(query, conn)
 
-    def get_core_stats_by_chain(
+    def get_core_stats(
         self,
         start_date: datetime,
         end_date: datetime,
-        chain: str = "All",
+        chain: str = "arbitrum_mainnet",
     ) -> pd.DataFrame:
         """
         Get core stats by chain.
@@ -195,29 +140,20 @@ class SynthetixAPI:
         Args:
             start_date (datetime): Start date for the query
             end_date (datetime): End date for the query
-            chain (str): Chain to query (e.g. 'Arbitrum', 'Base', 'All')
+            chain (str): Chain to query (e.g. 'arbitrum_mainnet')
 
         Returns:
             pandas.DataFrame: Core stats with columns 'ts', 'chain', 'collateral_value'
         """
-        label = self._get_chain_label(chain)
-        union_query = self._generate_union_query(
-            table_name="fct_core_apr",
-            columns=["ts", "collateral_value"],
-        )
+        chain_label = self.SUPPORTED_CHAINS[chain]
         query = f"""
-        WITH core_stats_by_chain AS (
-            {union_query}
-        )
-        
         SELECT
             ts,
-            chain,
+            '{chain_label}' AS chain,
             SUM(collateral_value) AS collateral_value
-        FROM core_stats_by_chain
+        FROM {self.environment}_{chain}.fct_core_apr_{chain}
         WHERE 
             ts >= '{start_date}' and ts <= '{end_date}'
-            AND chain in ({label})
         GROUP BY ts, chain
         ORDER BY ts
         """
@@ -228,8 +164,8 @@ class SynthetixAPI:
         self,
         start_date: datetime,
         end_date: datetime,
-        chain: str = "All",
-        resolution: str = "28d",
+        chain: str = "arbitrum_mainnet",
+        resolution: str = "7d",
     ) -> pd.DataFrame:
         """
         Get core stats by collateral.
@@ -237,64 +173,43 @@ class SynthetixAPI:
         Args:
             start_date (datetime): Start date for the query
             end_date (datetime): End date for the query
-            chain (str): Chain to query (e.g., 'arbitrum_mainnet', 'base_mainnet')
+            chain (str): Chain to query (e.g. 'arbitrum_mainnet')
             resolution (str): Data resolution ('24h', '1d', '28d')
 
         Returns:
             pandas.DataFrame: TVL data with columns:
-                'ts', 'label', 'chain', 'collateral_value', 'debt', 'rewards_usd', 'apr', 'apr_rewards'
+                'ts', 'label', 'chain', 'collateral_value', 'debt',
+                'rewards_usd', 'apr', 'apr_rewards'
         """
-        label = self._get_chain_label(chain)
-        union_query = self._generate_union_query(
-            table_name="fct_core_apr",
-            columns=[
-                "ts",
-                "token_symbol",
-                "collateral_value",
-                "debt",
-                "rewards_usd",
-                f"apr_{resolution} as apr",
-                f"apr_{resolution}_rewards as apr_rewards",
-            ],
-            join_table="tokens",
-            join_condition="lower(fct_core_apr.collateral_type) = lower(tokens.token_address)",
-        )
+        chain_label = self.SUPPORTED_CHAINS[chain]
         query = f"""
-        WITH core_stats_by_collateral AS (
-            {union_query}
-        )
-
         SELECT 
             ts,
-            chain,
-            token_symbol,
+            '{chain_label}' AS chain,
+            CONCAT(
+                COALESCE(tokens.token_symbol, stats.collateral_type),
+                ' (', '{chain_label}', ')'
+            ) AS label,
             collateral_value,
-            debt,
+            hourly_pnl,
             rewards_usd,
-            apr,
-            apr_rewards
-        FROM core_stats_by_collateral
+            apr_{resolution},
+            apr_{resolution}_rewards
+        FROM {self.environment}_{chain}.fct_core_apr_{chain} AS stats
+        LEFT JOIN {self.environment}_seeds.{chain}_tokens AS tokens
+            ON lower(stats.collateral_type) = lower(tokens.token_address)
         WHERE 
             ts >= '{start_date}' and ts <= '{end_date}'
-            AND chain in ({label})
         ORDER BY ts
         """
         with self.get_connection() as conn:
-            df = pd.read_sql_query(query, conn)
+            return pd.read_sql_query(query, conn)
 
-        # Post-process the dataframe to add the label column
-        df["label"] = df.apply(
-            lambda row: f"{row['token_symbol'] or row['collateral_type']} ({row['chain']})",
-            axis=1,
-        )
-
-        return df
-
-    def get_perps_stats_by_chain(
+    def get_perps_stats(
         self,
         start_date: datetime,
         end_date: datetime,
-        chain: str = "All",
+        chain: str = "arbitrum_mainnet",
         resolution: str = "daily",
     ) -> pd.DataFrame:
         """
@@ -303,31 +218,23 @@ class SynthetixAPI:
         Args:
             start_date (datetime): Start date for the query
             end_date (datetime): End date for the query
-            chain (str): Chain to query (e.g., 'arbitrum_mainnet', 'base_mainnet')
+            chain (str): Chain to query (e.g., 'arbitrum_mainnet')
 
         Returns:
             pandas.DataFrame: Perps stats with columns:
                 'ts', 'chain', 'volume', 'exchange_fees'
         """
-        label = self._get_chain_label(chain)
-        union_query = self._generate_union_query(
-            table_name=f"fct_perp_stats_{resolution}",
-            columns=["ts", "volume", "exchange_fees"],
-        )
+        chain_label = self.SUPPORTED_CHAINS[chain]
         query = f"""
-        WITH perps_stats_by_chain AS (
-            {union_query}
-        )
-
         SELECT
             ts,
-            chain,
+            '{chain_label}' AS chain,
             volume,
             exchange_fees
-        FROM perps_stats_by_chain
+        FROM {self.environment}_{chain}.fct_perp_stats_{resolution}_{chain}
         WHERE
             ts >= '{start_date}' and ts <= '{end_date}'
-            AND chain in ({label})
+        ORDER BY ts
         """
         with self.get_connection() as conn:
             return pd.read_sql_query(query, conn)
@@ -336,7 +243,7 @@ class SynthetixAPI:
         self,
         start_date: datetime,
         end_date: datetime,
-        chain: str = "All",
+        chain: str = "arbitrum_mainnet",
     ) -> pd.DataFrame:
         """
         Get perps markets history.
@@ -344,33 +251,55 @@ class SynthetixAPI:
         Args:
             start_date (datetime): Start date for the query
             end_date (datetime): End date for the query
-            chain (str): Chain to query (e.g., 'arbitrum_mainnet', 'base_mainnet')
+            chain (str): Chain to query (e.g., 'arbitrum_mainnet')
 
         Returns:
             pandas.DataFrame: Perps markets history with columns:
                 'ts', 'chain', 'market_symbol', 'size_usd', 'long_oi_pct', 'short_oi_pct'
         """
-        label = self._get_chain_label(chain)
-        union_query = self._generate_union_query(
-            table_name="fct_perp_market_history",
-            columns=["ts", "market_symbol", "size_usd", "long_oi_pct", "short_oi_pct"],
-        )
+        chain_label = self.SUPPORTED_CHAINS[chain]
         query = f"""
-        WITH perps_markets_history AS (
-            {union_query}
-        )
-        
         SELECT
             ts,
-            chain,
-            CONCAT(market_symbol, ' (', chain, ')') as market_symbol,
+            '{chain_label}' AS chain,
+            CONCAT(market_symbol, ' (', '{chain_label}', ')') as market_symbol,
             size_usd,
             long_oi_pct,
             short_oi_pct
-        FROM perps_markets_history
+        FROM {self.environment}_{chain}.fct_perp_market_history_{chain}
         WHERE
             ts >= '{start_date}' and ts <= '{end_date}'
-            AND chain in ({label})
+        ORDER BY ts
+        """
+        with self.get_connection() as conn:
+            return pd.read_sql_query(query, conn)
+
+    def get_snx_token_buyback(
+        self,
+        start_date: datetime,
+        end_date: datetime,
+        chain: str = "base_mainnet",
+    ) -> pd.DataFrame:
+        """
+        Get SNX token buyback data.
+
+        Args:
+            start_date (datetime): Start date for the query
+            end_date (datetime): End date for the query
+            chain (str): Chain to query (e.g., 'base_mainnet')
+
+        Returns:
+            pandas.DataFrame: SNX token buyback data with columns:
+                'ts', 'snx_amount', 'usd_amount'
+        """
+        query = f"""
+        SELECT
+            ts,
+            snx_amount,
+            usd_amount
+        FROM {self.environment}_{chain}.fct_buyback_daily_{chain}
+        WHERE
+            ts >= '{start_date}' and ts <= '{end_date}'
         ORDER BY ts
         """
         with self.get_connection() as conn:

@@ -31,7 +31,7 @@ token = st.Page("views/token.py", title="$SNX Token")
 
 # navigation
 pages = {
-    "Synthetix V3": [cross_chain, lp, perps, token],
+    "": [cross_chain, lp, perps, token],
 }
 nav = st.navigation(pages)
 nav.run()

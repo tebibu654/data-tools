@@ -18,7 +18,6 @@ packages = [
 python = "^3.11"
 streamlit = "^1.37.1"
 python-dotenv = "^1.0.1"
-st-pages = "^1.0.1"
 sqlalchemy = "^2.0.32"
 psycopg2-binary = "^2.9.9"
 plotly = "^5.23.0"

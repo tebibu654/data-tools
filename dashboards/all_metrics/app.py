@@ -2,7 +2,7 @@ import streamlit as st
 from api.internal_api import SynthetixAPI, get_db_config
 
 st.set_page_config(
-    page_title="Synthetix V3 All Metrics",
+    page_title="Synthetix Stats - All",
     page_icon=f"dashboards/static/favicon.ico",
     layout="wide",
 )
@@ -25,11 +25,11 @@ def load_api():
 st.session_state.api = load_api()
 
 # pages
-all_chains = st.Page("chain_pages/all_chains.py", title="Synthetix V3")
-ethereum = st.Page("chain_pages/ethereum.py", title="Ethereum")
-base = st.Page("chain_pages/base.py", title="Base")
-arbitrum = st.Page("chain_pages/arbitrum.py", title="Arbitrum")
-optimism = st.Page("chain_pages/optimism.py", title="Optimism")
+all_chains = st.Page("views/all_chains.py", title="Synthetix V3")
+ethereum = st.Page("views/ethereum.py", title="Ethereum")
+base = st.Page("views/base.py", title="Base")
+arbitrum = st.Page("views/arbitrum.py", title="Arbitrum")
+optimism = st.Page("views/optimism.py", title="Optimism")
 
 
 # navigation

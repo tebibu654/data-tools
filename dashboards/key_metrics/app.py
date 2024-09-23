@@ -5,6 +5,7 @@ st.set_page_config(
     page_title="Synthetix Stats",
     page_icon=f"dashboards/static/favicon.ico",
     layout="wide",
+    initial_sidebar_state="collapsed",
 )
 
 hide_footer = """
@@ -22,6 +23,12 @@ def load_api():
 
 
 st.session_state.api = load_api()
+
+# add link to sidebar
+st.sidebar.markdown(
+    f"Visit our [detailed dashboard](https://synthetix-all.streamlit.app) for more stats",
+    unsafe_allow_html=True,
+)
 
 # pages
 cross_chain = st.Page("views/cross_chain.py", title="Synthetix V3")

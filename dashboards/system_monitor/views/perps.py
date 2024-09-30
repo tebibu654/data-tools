@@ -47,9 +47,3 @@ configs = get_configs(st.session_state.snx)
 
 # display
 st.dataframe(configs, hide_index=True)
-
-
-st.write(sum(configs["max_market_value"]))
-
-st.write(sum(configs["size"] * configs["index_price"]))
-st.write(sum(configs["max_open_interest"] * configs["index_price"]))

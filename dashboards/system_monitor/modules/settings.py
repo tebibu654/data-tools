@@ -4,7 +4,7 @@ from synthetix import Synthetix
 from api.internal_api import SynthetixAPI, get_db_config
 
 # constants
-ALCHEMY_KEY = os.getenv("WEB3_ALCHEMY_API_KEY")
+ALCHEMY_KEY = st.secrets.settings.WEB3_ALCHEMY_API_KEY
 
 NETWORK_CONFIGS = {
     1: {

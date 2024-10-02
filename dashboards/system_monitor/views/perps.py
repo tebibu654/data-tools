@@ -42,8 +42,62 @@ def get_configs(snx):
     return df
 
 
+def clean_markets(configs):
+    # add OI
+    configs["open_interest"] = configs["size"] * configs["index_price"]
+    configs["long_oi"] = (
+        (configs["size"] + configs["skew"]) / 2 * configs["index_price"]
+    )
+    configs["short_oi"] = (
+        (configs["size"] - configs["skew"]) / 2 * configs["index_price"]
+    )
+    configs["long_pct"] = configs.apply(
+        lambda x: (
+            f"{(x['long_oi'] / x['open_interest']) * 100:.2f}%"
+            if x["open_interest"] > 0
+            else "0%"
+        ),
+        axis=1,
+    )
+    configs["short_pct"] = configs.apply(
+        lambda x: (
+            f"{(x['short_oi'] / x['open_interest']) * 100:.2f}%"
+            if x["open_interest"] > 0
+            else "0%"
+        ),
+        axis=1,
+    )
+    return configs
+
+
 # format the configurations
 configs = get_configs(st.session_state.snx)
+clean_configs = clean_markets(configs)
 
 # display
-st.dataframe(configs, hide_index=True)
+st.markdown("### Market Configurations")
+settings_cols = [
+    "market_id",
+    "market_name",
+    "max_open_interest",
+    "max_market_value",
+    "skew_scale",
+    "maker_fee",
+    "taker_fee",
+    "max_funding_velocity",
+    "feed_id",
+]
+st.dataframe(configs[settings_cols], hide_index=True, use_container_width=True)
+
+st.markdown("### Market Information")
+info_cols = [
+    "market_name",
+    "size",
+    "index_price",
+    "open_interest",
+    "long_oi",
+    "short_oi",
+    "long_pct",
+    "short_pct",
+]
+st.dataframe(configs[info_cols], hide_index=True, use_container_width=True)

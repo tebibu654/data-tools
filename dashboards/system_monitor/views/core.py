@@ -3,6 +3,7 @@ import streamlit as st
 import pandas as pd
 from synthetix import Synthetix
 from synthetix.utils import wei_to_ether
+from synthetix.utils.multicall import multicall_erc7412
 from eth_utils import encode_hex
 
 from dashboards.system_monitor.modules.settings import settings
@@ -69,8 +70,59 @@ def get_configs(snx):
     return df
 
 
+def get_vaults(snx, configs):
+    collaterals = configs.index.tolist()
+    function_inputs = [(1, collateral) for collateral in collaterals]
+
+    # get all vault collaterals
+    collateral_calls = multicall_erc7412(
+        snx, snx.core.core_proxy, "getVaultCollateral", function_inputs
+    )
+
+    collateral_results = {
+        collateral: {
+            "collateral_amount": wei_to_ether(result[0]),
+            "collateral_value": wei_to_ether(result[1]),
+        }
+        for collateral, result in zip(collaterals, collateral_calls)
+    }
+    df_collateral = pd.DataFrame.from_dict(collateral_results, orient="index")
+
+    # get all vault debt
+    debt_calls = multicall_erc7412(
+        snx, snx.core.core_proxy, "getVaultDebt", function_inputs
+    )
+
+    debt_results = {
+        collateral: {
+            "debt": wei_to_ether(result),
+        }
+        for collateral, result in zip(collaterals, debt_calls)
+    }
+    df_debt = pd.DataFrame.from_dict(debt_results, orient="index")
+
+    # combine them
+    df = pd.concat([df_collateral, df_debt], axis=1)
+
+    # look up the token name and symbol
+    df["token"] = df.index.map(lambda x: configs.loc[x, "token"])
+    df = df[["token", "collateral_amount", "collateral_value", "debt"]]
+    return df
+
+
 # format the configurations
 configs = get_configs(st.session_state.snx)
 
+collateral_addresses = configs["token_address"].tolist()
+vaults = get_vaults(st.session_state.snx, configs)
+
 # display
 st.dataframe(configs, hide_index=True)
+st.dataframe(vaults, hide_index=True)
+
+# potential useful items
+# - getMaximumMarketCollateral
+# - getMarketCollateralAmount
+# - getVaultCollateral
+# - getVaultDebt
+# - isVaultLiquidatable

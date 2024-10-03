@@ -16,7 +16,7 @@ settings()
 
 
 # get the core configuration
-@st.cache_data(ttl=3600, hash_funcs={Synthetix: lambda x: x.network_id})
+@st.cache_data(ttl=300, hash_funcs={Synthetix: lambda x: x.network_id})
 def get_configs(snx):
     raw_configs = snx.core.core_proxy.functions.getCollateralConfigurations(
         False
@@ -70,7 +70,7 @@ def get_configs(snx):
     return df
 
 
-@st.cache_data(ttl=3600, hash_funcs={Synthetix: lambda x: x.network_id})
+@st.cache_data(ttl=300, hash_funcs={Synthetix: lambda x: x.network_id})
 def get_vaults(snx, configs):
     collaterals = configs.index.tolist()
     function_inputs = [(1, collateral) for collateral in collaterals]
@@ -139,7 +139,7 @@ def get_market_type(snx, market_address):
         return "Unknown"
 
 
-@st.cache_data(ttl=3600, hash_funcs={Synthetix: lambda x: x.network_id})
+@st.cache_data(ttl=300, hash_funcs={Synthetix: lambda x: x.network_id})
 def get_markets(snx, configs):
     market_ids = range(1, 26)
 
@@ -195,7 +195,7 @@ def get_markets(snx, configs):
     return perps, spot
 
 
-@st.cache_data(ttl=3600, hash_funcs={Synthetix: lambda x: x.network_id})
+@st.cache_data(ttl=300, hash_funcs={Synthetix: lambda x: x.network_id})
 def get_market_details(snx, configs, markets, _contract):
     market_ids = [(market_id,) for market_id in markets["market_id"].tolist()]
 
@@ -253,7 +253,7 @@ def get_market_details(snx, configs, markets, _contract):
     return market_details
 
 
-@st.cache_data(ttl=3600, hash_funcs={Synthetix: lambda x: x.network_id})
+@st.cache_data(ttl=300, hash_funcs={Synthetix: lambda x: x.network_id})
 def get_market_collateral_details(snx, configs, markets):
     market_collaterals = [
         (market_id, collateral)

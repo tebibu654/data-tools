@@ -21,7 +21,7 @@ settings(enabled_markets=PERPS_NETWORKS)
 
 
 # get the core configuration
-@st.cache_data(ttl=3600, hash_funcs={Synthetix: lambda x: x.network_id})
+@st.cache_data(ttl=300, hash_funcs={Synthetix: lambda x: x.network_id})
 def get_configs(snx):
     markets = snx.perps.markets_by_name
 

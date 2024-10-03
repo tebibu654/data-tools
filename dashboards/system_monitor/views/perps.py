@@ -27,17 +27,20 @@ def get_configs(snx):
 
     # create a dataframe and clean it
     df = pd.DataFrame.from_dict(markets, orient="index").sort_values("market_id")
+    df["funding_apr"] = df["current_funding_rate"] * 365
 
     # change some types to percentages
     percent_cols = [
         "maker_fee",
         "taker_fee",
         "current_funding_rate",
+        "funding_apr",
         "current_funding_velocity",
         "interest_rate",
     ]
     for col in percent_cols:
-        df[col] = df[col].astype(float).map("{:.2%}".format)
+        pct_format = "{:.4%}" if "funding" in col else "{:.2%}"
+        df[col] = df[col].astype(float).map(pct_format.format)
 
     return df
 
@@ -115,5 +118,7 @@ info_cols = [
     "long_pct",
     "short_pct",
     "oi_used_pct",
+    "funding_apr",
+    "interest_rate",
 ]
 st.dataframe(configs[info_cols], hide_index=True, use_container_width=True)

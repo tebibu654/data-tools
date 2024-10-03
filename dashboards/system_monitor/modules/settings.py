@@ -2,6 +2,7 @@ import os
 import streamlit as st
 from synthetix import Synthetix
 from api.internal_api import SynthetixAPI, get_db_config
+from dashboards.utils.providers import get_provider_url
 
 # constants
 ALCHEMY_KEY = st.secrets.settings.WEB3_ALCHEMY_API_KEY
@@ -10,43 +11,33 @@ NETWORK_CONFIGS = {
     1: {
         "network_id": 1,
         "network_name": "Ethereum Mainnet",
-        "provider_rpc": f"https://eth-mainnet.g.alchemy.com/v2/{ALCHEMY_KEY}",
+        "provider_rpc": get_provider_url(1),
     },
     8453: {
         "network_id": 8453,
         "network_name": "Base Mainnet",
-        "provider_rpc": f"https://base-mainnet.g.alchemy.com/v2/{ALCHEMY_KEY}",
+        "provider_rpc": get_provider_url(8453),
     },
     42161: {
         "network_id": 42161,
         "network_name": "Arbitrum Mainnet",
-        "provider_rpc": f"https://arb-mainnet.g.alchemy.com/v2/{ALCHEMY_KEY}",
+        "provider_rpc": get_provider_url(42161),
     },
-    # 10: {
-    #     "network_id": 10,
-    #     "network_name": "Optimism Mainnet",
-    #     "provider_rpc": f"https://opt-mainnet.g.alchemy.com/v2/{ALCHEMY_KEY}",
-    # },
     11155111: {
         "network_id": 11155111,
         "network_name": "Ethereum Sepolia",
-        "provider_rpc": f"https://eth-sepolia.g.alchemy.com/v2/{ALCHEMY_KEY}",
+        "provider_rpc": get_provider_url(11155111),
     },
     84532: {
         "network_id": 84532,
         "network_name": "Base Sepolia",
-        "provider_rpc": f"https://base-sepolia.g.alchemy.com/v2/{ALCHEMY_KEY}",
+        "provider_rpc": get_provider_url(84532),
     },
     421614: {
         "network_id": 421614,
         "network_name": "Arbitrum Sepolia",
-        "provider_rpc": f"https://arb-sepolia.g.alchemy.com/v2/{ALCHEMY_KEY}",
+        "provider_rpc": get_provider_url(421614),
     },
-    # 420: {
-    #     "network_id": 420,
-    #     "network_name": "Optimism Sepolia",
-    #     "provider_rpc": f"https://opt-sepolia.g.alchemy.com/v2/{ALCHEMY_KEY}",
-    # },
 }
 
 

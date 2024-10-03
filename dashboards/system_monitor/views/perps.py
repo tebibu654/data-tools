@@ -67,6 +67,21 @@ def clean_markets(configs):
         ),
         axis=1,
     )
+
+    # calculate amount of oi used
+    # it is the larger of the size versus max_open_interest OR the size * index_price versus the max_market_value
+    configs["oi_used"] = configs.apply(
+        lambda x: max(
+            x["size"] / x["max_open_interest"] if x["max_open_interest"] > 0 else 0,
+            (
+                (x["size"] * x["index_price"]) / x["max_market_value"]
+                if x["max_market_value"] > 0
+                else 0
+            ),
+        ),
+        axis=1,
+    )
+    configs["oi_used_pct"] = configs["oi_used"].map("{:.2%}".format)
     return configs
 
 
@@ -99,5 +114,6 @@ info_cols = [
     "short_oi",
     "long_pct",
     "short_pct",
+    "oi_used_pct",
 ]
 st.dataframe(configs[info_cols], hide_index=True, use_container_width=True)

@@ -60,6 +60,26 @@ def fetch_data(date_range, chain):
         for current_chain in chains_to_fetch
         if current_chain in SUPPORTED_CHAINS_PERPS
     ]
+    core_account_activity_daily = [
+        st.session_state.api.get_core_account_activity(
+            start_date=start_date.date(),
+            end_date=end_date.date(),
+            chain=current_chain,
+            resolution="day",
+        )
+        for current_chain in chains_to_fetch
+        if current_chain in SUPPORTED_CHAINS_CORE
+    ]
+    perps_account_activity_daily = [
+        st.session_state.api.get_perps_account_activity(
+            start_date=start_date.date(),
+            end_date=end_date.date(),
+            chain=current_chain,
+            resolution="day",
+        )
+        for current_chain in chains_to_fetch
+        if current_chain in SUPPORTED_CHAINS_PERPS
+    ]
 
     return {
         "core_stats_by_collateral": (
@@ -72,6 +92,16 @@ def fetch_data(date_range, chain):
         ),
         "perps_stats": (
             pd.concat(perps_stats, ignore_index=True) if perps_stats else pd.DataFrame()
+        ),
+        "core_account_activity_daily": (
+            pd.concat(core_account_activity_daily, ignore_index=True)
+            if core_account_activity_daily
+            else pd.DataFrame()
+        ),
+        "perps_account_activity_daily": (
+            pd.concat(perps_account_activity_daily, ignore_index=True)
+            if perps_account_activity_daily
+            else pd.DataFrame()
         ),
     }
 
@@ -103,6 +133,18 @@ chart_core_tvl_by_chain = chart_area(
     title="TVL",
     color="chain",
 )
+chart_core_account_activity_daily = chart_lines(
+    data["core_account_activity_daily"]
+    .groupby(["date", "action"])
+    .nof_accounts.sum()
+    .reset_index(),
+    x_col="date",
+    y_cols="nof_accounts",
+    title="LP Accounts Activity",
+    color="action",
+    y_format="#",
+    help_text="Number of daily active accounts per action (Delegate, Withdraw, Claim)",
+)
 chart_core_tvl_by_collateral = chart_area(
     data["core_stats_by_collateral"],
     x_col="ts",
@@ -119,14 +161,12 @@ chart_core_apr_by_collateral = chart_lines(
     y_format="%",
 )
 
-
-st.plotly_chart(chart_core_tvl_by_chain, use_container_width=True)
-
 core_chart_col1, core_chart_col2 = st.columns(2)
-
 with core_chart_col1:
+    st.plotly_chart(chart_core_tvl_by_chain, use_container_width=True)
     st.plotly_chart(chart_core_apr_by_collateral, use_container_width=True)
 with core_chart_col2:
+    st.plotly_chart(chart_core_account_activity_daily, use_container_width=True)
     st.plotly_chart(chart_core_tvl_by_collateral, use_container_width=True)
 
 if st.session_state.chain in [*SUPPORTED_CHAINS_PERPS, "all"]:
@@ -136,6 +176,15 @@ if st.session_state.chain in [*SUPPORTED_CHAINS_PERPS, "all"]:
         y_cols="volume",
         title="Perps Volume",
         color="chain",
+    )
+    chart_perps_account_activity_daily = chart_bars(
+        data["perps_account_activity_daily"],
+        x_col="date",
+        y_cols="nof_accounts",
+        title="Perps Accounts Activity",
+        color="chain",
+        y_format="#",
+        help_text="Number of daily unique accounts that have at least one settled order",
     )
     chart_perps_fees_by_chain = chart_bars(
         data["perps_stats"],
@@ -148,5 +197,6 @@ if st.session_state.chain in [*SUPPORTED_CHAINS_PERPS, "all"]:
     perps_chart_col1, perps_chart_col2 = st.columns(2)
     with perps_chart_col1:
         st.plotly_chart(chart_perps_volume_by_chain, use_container_width=True)
-    with perps_chart_col2:
         st.plotly_chart(chart_perps_fees_by_chain, use_container_width=True)
+    with perps_chart_col2:
+        st.plotly_chart(chart_perps_account_activity_daily, use_container_width=True)

@@ -27,6 +27,17 @@ def fetch_data(chain, start_date, end_date, resolution):
         """
     )
 
+    df_oi = api._run_query(
+        f"""
+        SELECT
+            ts,
+            total_oi_usd
+        FROM {api.environment}_{chain}.fct_perp_market_history_{chain}
+        WHERE ts >= '{start_date}' and ts <= '{end_date}'
+        ORDER BY ts
+        """
+    )
+
     df_buyback = (
         api._run_query(
             f"""
@@ -46,6 +57,7 @@ def fetch_data(chain, start_date, end_date, resolution):
 
     return {
         "stats": df_stats,
+        "oi": df_oi,
         "buyback": df_buyback,
     }
 
@@ -80,6 +92,14 @@ def make_charts(data):
             ["trades"],
             "Trades",
             y_format="#",
+        ),
+        "oi": chart_lines(
+            data["oi"],
+            "ts",
+            ["total_oi_usd"],
+            "Open Interest",
+            y_format="$",
+            smooth=True,
         ),
         "account_liquidations": chart_bars(
             data["stats"],
@@ -185,6 +205,7 @@ def main():
         st.plotly_chart(charts["volume"], use_container_width=True)
         st.plotly_chart(charts["fees"], use_container_width=True)
         st.plotly_chart(charts["trades"], use_container_width=True)
+        st.plotly_chart(charts["oi"], use_container_width=True)
 
     if st.session_state.chain.startswith("base"):
         bb_col1, bb_col2 = st.columns(2)

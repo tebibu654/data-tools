@@ -196,16 +196,16 @@ def main():
     col1, col2 = st.columns(2)
 
     with col1:
-        st.plotly_chart(charts["cumulative_volume"], use_container_width=True)
-        st.plotly_chart(charts["cumulative_fees"], use_container_width=True)
+        st.plotly_chart(charts["volume"], use_container_width=True)
+        st.plotly_chart(charts["oi"], use_container_width=True)
         st.plotly_chart(charts["account_liquidations"], use_container_width=True)
-        st.plotly_chart(charts["liquidation_rewards"], use_container_width=True)
+        st.plotly_chart(charts["cumulative_volume"], use_container_width=True)
 
     with col2:
-        st.plotly_chart(charts["volume"], use_container_width=True)
         st.plotly_chart(charts["fees"], use_container_width=True)
         st.plotly_chart(charts["trades"], use_container_width=True)
-        st.plotly_chart(charts["oi"], use_container_width=True)
+        st.plotly_chart(charts["liquidation_rewards"], use_container_width=True)
+        st.plotly_chart(charts["cumulative_fees"], use_container_width=True)
 
     if st.session_state.chain.startswith("base"):
         bb_col1, bb_col2 = st.columns(2)

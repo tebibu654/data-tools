@@ -33,7 +33,7 @@ def get_db_config(streamlit=True):
     }
 
 
-def get_connection(db_config):
+def _get_connection(db_config):
     connection_string = f"postgresql://{db_config['user']}:{db_config['password']}@{db_config['host']}:{db_config['port']}/{db_config['dbname']}"
     engine = sqlalchemy.create_engine(connection_string)
     conn = engine.connect()
@@ -73,7 +73,7 @@ class SynthetixAPI:
         self.engine.dispose()
 
     @contextmanager
-    def get_connection(
+    def _get_connection(
         self,
     ) -> Generator[sqlalchemy.engine.base.Connection, None, None]:
         """Context manager for database connections."""
@@ -93,15 +93,15 @@ class SynthetixAPI:
         Returns:
             pandas.DataFrame: The query results.
         """
-        with self.get_connection() as conn:
+        with self._get_connection() as conn:
             return pd.read_sql_query(query, conn)
 
     # queries
     def get_volume(
         self,
-        chain: str,
         start_date: datetime,
         end_date: datetime,
+        chain: str = "arbitrum_mainnet",
         resolution: str = "daily",
     ) -> pd.DataFrame:
         """
@@ -125,7 +125,7 @@ class SynthetixAPI:
         WHERE ts >= '{start_date}' and ts <= '{end_date}'
         ORDER BY ts
         """
-        with self.get_connection() as conn:
+        with self._get_connection() as conn:
             return pd.read_sql_query(query, conn)
 
     def get_core_stats(
@@ -157,7 +157,7 @@ class SynthetixAPI:
         GROUP BY ts, chain
         ORDER BY ts
         """
-        with self.get_connection() as conn:
+        with self._get_connection() as conn:
             return pd.read_sql_query(query, conn)
 
     def get_core_stats_by_collateral(
@@ -202,7 +202,7 @@ class SynthetixAPI:
             ts >= '{start_date}' and ts <= '{end_date}'
         ORDER BY ts
         """
-        with self.get_connection() as conn:
+        with self._get_connection() as conn:
             return pd.read_sql_query(query, conn)
 
     def get_perps_stats(
@@ -236,7 +236,7 @@ class SynthetixAPI:
             ts >= '{start_date}' and ts <= '{end_date}'
         ORDER BY ts
         """
-        with self.get_connection() as conn:
+        with self._get_connection() as conn:
             return pd.read_sql_query(query, conn)
 
     def get_perps_markets_history(
@@ -255,7 +255,7 @@ class SynthetixAPI:
 
         Returns:
             pandas.DataFrame: Perps markets history with columns:
-                'ts', 'chain', 'market_symbol', 'size_usd', 'long_oi_pct', 'short_oi_pct'
+                'ts', 'chain', 'market_symbol', 'total_oi_usd', 'long_oi_pct', 'short_oi_pct'
         """
         chain_label = self.SUPPORTED_CHAINS[chain]
         query = f"""
@@ -263,7 +263,7 @@ class SynthetixAPI:
             ts,
             '{chain_label}' AS chain,
             CONCAT(market_symbol, ' (', '{chain_label}', ')') as market_symbol,
-            size_usd,
+            total_oi_usd,
             long_oi_pct,
             short_oi_pct
         FROM {self.environment}_{chain}.fct_perp_market_history_{chain}
@@ -271,7 +271,7 @@ class SynthetixAPI:
             ts >= '{start_date}' and ts <= '{end_date}'
         ORDER BY ts
         """
-        with self.get_connection() as conn:
+        with self._get_connection() as conn:
             return pd.read_sql_query(query, conn)
 
     def get_snx_token_buyback(
@@ -302,5 +302,5 @@ class SynthetixAPI:
             ts >= '{start_date}' and ts <= '{end_date}'
         ORDER BY ts
         """
-        with self.get_connection() as conn:
+        with self._get_connection() as conn:
             return pd.read_sql_query(query, conn)

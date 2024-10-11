@@ -10,7 +10,7 @@ from dashboards.key_metrics.constants import (
     SUPPORTED_CHAINS_PERPS,
 )
 
-st.markdown("# Synthetix Stats")
+st.markdown("# Synthetix V3 Stats")
 
 APR_RESOLUTION = "7d"
 PERPS_RESOLUTION = "daily"
@@ -50,7 +50,7 @@ def fetch_data(date_range, chain):
         for current_chain in chains_to_fetch
         if current_chain in SUPPORTED_CHAINS_CORE
     ]
-    perps_stats_v3 = [
+    perps_stats = [
         st.session_state.api.get_perps_stats(
             start_date=start_date.date(),
             end_date=end_date.date(),
@@ -60,25 +60,7 @@ def fetch_data(date_range, chain):
         for current_chain in chains_to_fetch
         if current_chain in SUPPORTED_CHAINS_PERPS
     ]
-    perps_stats_v2 = (
-        [
-            st.session_state.api.get_perps_v2_stats(
-                start_date=start_date.date(),
-                end_date=end_date.date(),
-                resolution=PERPS_RESOLUTION,
-            )
-        ]
-        if chain == "all" or chain == "optimism_mainnet"
-        else []
-    )
-    perps_stats_dfs = perps_stats_v3 + perps_stats_v2
-    perps_stats = (
-        pd.concat(perps_stats_dfs, ignore_index=True)
-        if len(perps_stats_dfs) > 0
-        else pd.DataFrame()
-    )
-
-    open_interest_v3 = [
+    open_interest = [
         st.session_state.api.get_perps_open_interest(
             start_date=start_date.date(),
             end_date=end_date.date(),
@@ -88,23 +70,6 @@ def fetch_data(date_range, chain):
         for current_chain in chains_to_fetch
         if current_chain in SUPPORTED_CHAINS_PERPS
     ]
-    open_interest_v2 = (
-        [
-            st.session_state.api.get_perps_v2_open_interest(
-                start_date=start_date.date(),
-                end_date=end_date.date(),
-                resolution=PERPS_RESOLUTION,
-            )
-        ]
-        if chain == "all" or chain == "optimism_mainnet"
-        else []
-    )
-    open_interest_dfs = open_interest_v3 + open_interest_v2
-    open_interest = (
-        pd.concat(open_interest_dfs, ignore_index=True)
-        if len(open_interest_dfs) > 0
-        else pd.DataFrame()
-    )
 
     return {
         "core_stats_by_collateral": (
@@ -115,8 +80,14 @@ def fetch_data(date_range, chain):
         "core_stats": (
             pd.concat(core_stats, ignore_index=True) if core_stats else pd.DataFrame()
         ),
-        "perps_stats": perps_stats,
-        "open_interest": open_interest,
+        "perps_stats": (
+            pd.concat(perps_stats, ignore_index=True) if perps_stats else pd.DataFrame()
+        ),
+        "open_interest": (
+            pd.concat(open_interest, ignore_index=True)
+            if open_interest
+            else pd.DataFrame()
+        ),
     }
 
 
@@ -134,13 +105,9 @@ with filter_col1:
 with filter_col2:
     st.radio(
         "Select chain",
-        ["all", *SUPPORTED_CHAINS_CORE, "optimism_mainnet"],
+        ["all", *SUPPORTED_CHAINS_CORE],
         index=0,
-        format_func=lambda x: (
-            "All"
-            if x == "all"
-            else "Optimism" if x == "optimism_mainnet" else SUPPORTED_CHAINS_CORE[x]
-        ),
+        format_func=lambda x: ("All" if x == "all" else SUPPORTED_CHAINS_CORE[x]),
         key="chain",
     )
 
@@ -177,7 +144,7 @@ if st.session_state.chain in [*SUPPORTED_CHAINS_CORE, "all"]:
     with core_chart_col2:
         st.plotly_chart(chart_core_tvl_by_collateral, use_container_width=True)
 
-if st.session_state.chain in [*SUPPORTED_CHAINS_PERPS, "all", "optimism_mainnet"]:
+if st.session_state.chain in [*SUPPORTED_CHAINS_PERPS, "all"]:
     chart_perps_volume_by_chain = chart_bars(
         data["perps_stats"],
         x_col="ts",

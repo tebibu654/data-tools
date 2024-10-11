@@ -367,8 +367,7 @@ class SynthetixAPI:
             ts,
             '{chain_label}' AS chain,
             volume,
-            exchange_fees,
-            liquidation_fees
+            exchange_fees + liquidation_fees as exchange_fees
         FROM {self.environment}_{chain}.fct_v2_stats_{resolution}_{chain}
         WHERE
             ts >= '{start_date}' and ts <= '{end_date}'

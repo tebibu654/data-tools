@@ -392,8 +392,8 @@ class SynthetixAPI:
             chain (str): Chain to query (e.g., 'optimism_mainnet')
 
         Returns:
-            pandas.DataFrame: Perps stats with columns:
-                'ts', 'chain', 'volume', 'exchange_fees'
+            pandas.DataFrame: Open interest data with columns:
+                'ts', 'chain', 'total_oi_usd'
         """
         chain_label = self.SUPPORTED_CHAINS[chain]
         query = f"""

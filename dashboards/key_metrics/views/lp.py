@@ -54,6 +54,9 @@ def fetch_data(date_range, chain):
         ),
         "core_account_activity_daily": (
             pd.concat(core_account_activity_daily, ignore_index=True)
+            .groupby(["date", "action"])
+            .nof_accounts.sum()
+            .reset_index()
             if core_account_activity_daily
             else pd.DataFrame()
         ),
@@ -88,10 +91,7 @@ chart_core_tvl_by_collateral = chart_area(
     color="label",
 )
 chart_core_account_activity_daily = chart_lines(
-    data["core_account_activity_daily"]
-    .groupby(["date", "action"])
-    .nof_accounts.sum()
-    .reset_index(),
+    data["core_account_activity_daily"],
     x_col="date",
     y_cols="nof_accounts",
     title="Accounts Activity",

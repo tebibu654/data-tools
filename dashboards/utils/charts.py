@@ -2,7 +2,7 @@ import plotly.express as px
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Any, Dict
 
 # Constants
 SEQUENTIAL_COLORS = [
@@ -41,14 +41,14 @@ def update_layout(
     fig,
     orientation: str = "v",
     help_text: Optional[str] = None,
-    trace: Optional[go.Scatter] = None,
+    custom_trace: Optional[go.Scatter] = None,
 ):
     """Apply common layout updates to the figure."""
     fig.update_xaxes(title_text="", automargin=True)
     fig.update_yaxes(title_text="")
     fig.update_traces(hovertemplate=None)
 
-    if help_text:
+    if help_text is not None:
         fig.update_layout(
             annotations=[
                 dict(
@@ -70,16 +70,15 @@ def update_layout(
                 )
             ]
         )
-    if trace:
-        fig.add_trace(trace)
-        fig.update_traces(hoverlabel=dict(font=dict(weight="bold")))
+    if custom_trace is not None:
+        fig.add_trace(custom_trace)
     for t in fig.data:
-        if t.name != "Total":
-            t.hovertemplate = "{name}: %{y:.4s}<extra></extra>".replace(
+        if custom_trace is not None and t.name == custom_trace.name:
+            t.hovertemplate = "<b>{name}: %{y:.4s}</b><extra></extra>".replace(
                 "{name}", t.name
             )
         else:
-            t.hovertemplate = "<b>{name}: %{y:,.2f}</b><extra></extra>".replace(
+            t.hovertemplate = "{name}: %{y:.4s}<extra></extra>".replace(
                 "{name}", t.name
             )
     fig.update_layout(
@@ -94,7 +93,6 @@ def update_layout(
         ),
         font=dict(family=FONT_FAMILY),
     )
-    print(fig)
     return fig
 
 
@@ -189,7 +187,7 @@ def chart_area(
     y_format: str = "$",
     column: bool = False,
     help_text: Optional[str] = None,
-    custom_data: Optional[pd.DataFrame] = None,
+    custom_data: Optional[Dict[str, Any]] = None,
 ):
     """Create an area chart."""
     fig = px.area(
@@ -205,17 +203,20 @@ def chart_area(
     fig = set_axes(fig, x_format, y_format)
     trace = None
     if custom_data is not None:
-        trace = go.Scatter(
-            x=df[x_col],
-            y=custom_data.collateral_value,
-            mode="lines",
-            line=dict(color="white", width=0),
-            name="Total",
-            showlegend=False,
-            hoverlabel=dict(font_size=22, font_weight="bold"),
-        )
+        custom_df = custom_data.get("df")
+        if isinstance(custom_df, pd.DataFrame) and not custom_df.empty:
+            line_color = custom_data.get("line_color", "white")
+            line_width = custom_data.get("line_width", 0)
+            trace = go.Scatter(
+                x=custom_df.iloc[:, 0],
+                y=custom_df.iloc[:, 1],
+                mode="lines",
+                line=dict(color=line_color, width=line_width),
+                name=custom_data.get("name", "Custom Data"),
+                showlegend=custom_data.get("showlegend", False),
+            )
     return update_layout(
-        fig, orientation="h" if column else "v", help_text=help_text, trace=trace
+        fig, orientation="h" if column else "v", help_text=help_text, custom_trace=trace
     )
 
 

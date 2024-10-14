@@ -136,6 +136,5 @@ with chart_col1:
     st.plotly_chart(chart_core_apr_by_collateral, use_container_width=True)
     st.plotly_chart(chart_core_debt_by_collateral, use_container_width=True)
 with chart_col2:
-    st.plotly_chart(chart_core_account_activity_daily, use_container_width=True)
     st.plotly_chart(chart_core_apr_rewards_by_collateral, use_container_width=True)
     st.plotly_chart(chart_core_rewards_usd_by_collateral, use_container_width=True)

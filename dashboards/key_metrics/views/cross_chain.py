@@ -77,11 +77,27 @@ def fetch_data(date_range, chain):
             if core_stats_by_collateral
             else pd.DataFrame()
         ),
+        "core_stats_total_tvl": (
+            pd.concat(core_stats, ignore_index=True)
+            .groupby("ts")
+            .collateral_value.sum()
+            .reset_index()
+            if core_stats
+            else pd.DataFrame()
+        ),
         "core_stats": (
             pd.concat(core_stats, ignore_index=True) if core_stats else pd.DataFrame()
         ),
         "perps_stats": (
             pd.concat(perps_stats, ignore_index=True) if perps_stats else pd.DataFrame()
+        ),
+        "perps_stats_total_volume": (
+            pd.concat(perps_stats, ignore_index=True)
+            .groupby("ts")
+            .volume.sum()
+            .reset_index()
+            if perps_stats
+            else pd.DataFrame()
         ),
         "perps_account_activity_daily": (
             pd.concat(perps_account_activity_daily, ignore_index=True)
@@ -117,6 +133,8 @@ chart_core_tvl_by_chain = chart_area(
     y_cols="collateral_value",
     title="TVL",
     color="chain",
+    custom_data={"df": data["core_stats_total_tvl"], "name": "Total TVL"},
+    hover_prefix="$",
 )
 chart_core_tvl_by_collateral = chart_area(
     data["core_stats_by_collateral"],
@@ -148,6 +166,8 @@ if st.session_state.chain in [*SUPPORTED_CHAINS_PERPS, "all"]:
         y_cols="volume",
         title="Perps Volume",
         color="chain",
+        custom_data={"df": data["perps_stats_total_volume"], "name": "Total Volume"},
+        hover_prefix="$",
     )
     chart_perps_account_activity_daily = chart_bars(
         data["perps_account_activity_daily"],

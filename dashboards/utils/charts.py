@@ -41,7 +41,8 @@ def update_layout(
     fig,
     orientation: str = "v",
     help_text: Optional[str] = None,
-    custom_trace: Optional[go.Scatter] = None,
+    custom_data: Optional[Dict[str, Any]] = None,
+    hover_prefix: str = "",
 ):
     """Apply common layout updates to the figure."""
     fig.update_xaxes(title_text="", automargin=True)
@@ -70,17 +71,27 @@ def update_layout(
                 )
             ]
         )
-    if custom_trace is not None:
-        fig.add_trace(custom_trace)
+    if custom_data is not None:
+        custom_df = custom_data.get("df")
+        if isinstance(custom_df, pd.DataFrame) and not custom_df.empty:
+            line_color = custom_data.get("line_color", "white")
+            line_width = custom_data.get("line_width", 0)
+            custom_trace = go.Scatter(
+                x=custom_df.iloc[:, 0],
+                y=custom_df.iloc[:, 1],
+                mode="lines",
+                line=dict(color=line_color, width=line_width),
+                name=custom_data.get("name", "Custom Data"),
+                showlegend=custom_data.get("showlegend", False),
+            )
+            fig.add_trace(custom_trace)
     for t in fig.data:
-        if custom_trace is not None and t.name == custom_trace.name:
-            t.hovertemplate = "<b>{name}: %{y:.4s}</b><extra></extra>".replace(
-                "{name}", t.name
+        if custom_data is not None and t.name == custom_data.get("name", "Custom Data"):
+            t.hovertemplate = (
+                f"<b>{t.name}: {hover_prefix}%{{y:.4s}}</b><extra></extra>"
             )
         else:
-            t.hovertemplate = "{name}: %{y:.4s}<extra></extra>".replace(
-                "{name}", t.name
-            )
+            t.hovertemplate = f"{t.name}: {hover_prefix}%{{y:.4s}}<extra></extra>"
     fig.update_layout(
         hovermode=f"{'y' if orientation == 'h' else 'x'} unified",
         legend=dict(
@@ -160,6 +171,8 @@ def chart_bars(
     column: bool = False,
     barmode: str = "relative",
     help_text: Optional[str] = None,
+    custom_data: Optional[Dict[str, Any]] = None,
+    hover_prefix: str = "",
 ):
     """Create a bar chart."""
     fig = px.bar(
@@ -174,7 +187,13 @@ def chart_bars(
         barmode=barmode,
     )
     fig = set_axes(fig, x_format, y_format)
-    return update_layout(fig, orientation="h" if column else "v", help_text=help_text)
+    return update_layout(
+        fig,
+        orientation="h" if column else "v",
+        help_text=help_text,
+        custom_data=custom_data,
+        hover_prefix=hover_prefix,
+    )
 
 
 def chart_area(
@@ -188,6 +207,7 @@ def chart_area(
     column: bool = False,
     help_text: Optional[str] = None,
     custom_data: Optional[Dict[str, Any]] = None,
+    hover_prefix: str = "",
 ):
     """Create an area chart."""
     fig = px.area(
@@ -201,22 +221,12 @@ def chart_area(
     )
     fig.update_traces(hovertemplate=None)
     fig = set_axes(fig, x_format, y_format)
-    trace = None
-    if custom_data is not None:
-        custom_df = custom_data.get("df")
-        if isinstance(custom_df, pd.DataFrame) and not custom_df.empty:
-            line_color = custom_data.get("line_color", "white")
-            line_width = custom_data.get("line_width", 0)
-            trace = go.Scatter(
-                x=custom_df.iloc[:, 0],
-                y=custom_df.iloc[:, 1],
-                mode="lines",
-                line=dict(color=line_color, width=line_width),
-                name=custom_data.get("name", "Custom Data"),
-                showlegend=custom_data.get("showlegend", False),
-            )
     return update_layout(
-        fig, orientation="h" if column else "v", help_text=help_text, custom_trace=trace
+        fig,
+        orientation="h" if column else "v",
+        help_text=help_text,
+        custom_data=custom_data,
+        hover_prefix=hover_prefix,
     )
 
 

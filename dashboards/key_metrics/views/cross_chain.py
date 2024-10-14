@@ -169,6 +169,6 @@ if st.session_state.chain in [*SUPPORTED_CHAINS_PERPS, "all"]:
     perps_chart_col1, perps_chart_col2 = st.columns(2)
     with perps_chart_col1:
         st.plotly_chart(chart_perps_volume_by_chain, use_container_width=True)
-        st.plotly_chart(chart_perps_fees_by_chain, use_container_width=True)
-    with perps_chart_col2:
         st.plotly_chart(chart_perps_account_activity_daily, use_container_width=True)
+    with perps_chart_col2:
+        st.plotly_chart(chart_perps_fees_by_chain, use_container_width=True)

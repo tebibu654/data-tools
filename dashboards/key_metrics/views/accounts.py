@@ -81,11 +81,17 @@ def fetch_data(date_range, chain):
     return {
         "core_account_activity_daily": (
             pd.concat(core_account_activity_daily, ignore_index=True)
+            .groupby(["date", "action"])
+            .nof_accounts.sum()
+            .reset_index()
             if core_account_activity_daily
             else pd.DataFrame()
         ),
         "core_account_activity_monthly": (
             pd.concat(core_account_activity_monthly, ignore_index=True)
+            .groupby(["date", "action"])
+            .nof_accounts.sum()
+            .reset_index()
             if core_account_activity_monthly
             else pd.DataFrame()
         ),
@@ -128,10 +134,7 @@ with filter_col2:
     )
 
 chart_core_account_activity_daily = chart_lines(
-    data["core_account_activity_daily"]
-    .groupby(["date", "action"])
-    .nof_accounts.sum()
-    .reset_index(),
+    data["core_account_activity_daily"],
     x_col="date",
     y_cols="nof_accounts",
     title="Accounts Activity (Daily)",
@@ -140,10 +143,7 @@ chart_core_account_activity_daily = chart_lines(
     help_text="Number of daily active accounts per action (Delegate, Withdraw, Claim)",
 )
 chart_core_account_activity_monthly = chart_bars(
-    data["core_account_activity_monthly"]
-    .groupby(["date", "action"])
-    .nof_accounts.sum()
-    .reset_index(),
+    data["core_account_activity_monthly"],
     x_col="date",
     y_cols="nof_accounts",
     title="Accounts Activity (Monthly)",

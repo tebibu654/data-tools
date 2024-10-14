@@ -54,6 +54,9 @@ def fetch_data(date_range, chain):
         ),
         "core_account_activity_daily": (
             pd.concat(core_account_activity_daily, ignore_index=True)
+            .groupby(["date", "action"])
+            .nof_accounts.sum()
+            .reset_index()
             if core_account_activity_daily
             else pd.DataFrame()
         ),
@@ -88,10 +91,7 @@ chart_core_tvl_by_collateral = chart_area(
     color="label",
 )
 chart_core_account_activity_daily = chart_lines(
-    data["core_account_activity_daily"]
-    .groupby(["date", "action"])
-    .nof_accounts.sum()
-    .reset_index(),
+    data["core_account_activity_daily"],
     x_col="date",
     y_cols="nof_accounts",
     title="Accounts Activity",
@@ -136,6 +136,5 @@ with chart_col1:
     st.plotly_chart(chart_core_apr_by_collateral, use_container_width=True)
     st.plotly_chart(chart_core_debt_by_collateral, use_container_width=True)
 with chart_col2:
-    st.plotly_chart(chart_core_account_activity_daily, use_container_width=True)
     st.plotly_chart(chart_core_apr_rewards_by_collateral, use_container_width=True)
     st.plotly_chart(chart_core_rewards_usd_by_collateral, use_container_width=True)

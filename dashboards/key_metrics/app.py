@@ -39,7 +39,7 @@ accounts = st.Page("views/accounts.py", title="Accounts Activity")
 
 # navigation
 pages = {
-    "": [cross_chain, lp, perps, token, accounts],
+    "": [cross_chain, lp, perps, token],
 }
 nav = st.navigation(pages)
 nav.run()

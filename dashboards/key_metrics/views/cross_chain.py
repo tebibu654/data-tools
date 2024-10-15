@@ -197,5 +197,4 @@ if st.session_state.chain in [*SUPPORTED_CHAINS_PERPS, "all"]:
         st.plotly_chart(chart_perps_account_activity_daily, use_container_width=True)
     with perps_chart_col2:
         st.plotly_chart(chart_perps_fees_by_chain, use_container_width=True)
-
-    st.plotly_chart(chart_perps_oi_by_chain, use_container_width=True)
+        st.plotly_chart(chart_perps_oi_by_chain, use_container_width=True)

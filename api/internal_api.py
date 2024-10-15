@@ -205,6 +205,73 @@ class SynthetixAPI:
         with self.get_connection() as conn:
             return pd.read_sql_query(query, conn)
 
+    def get_core_account_activity(
+        self,
+        start_date: datetime,
+        end_date: datetime,
+        chain: str = "arbitrum_mainnet",
+        resolution: str = "daily",
+    ) -> pd.DataFrame:
+        """
+        Get core account activity by action (Delegate, Withdraw, Claim).
+
+        Args:
+            start_date (datetime): Start date for the query
+            end_date (datetime): End date for the query
+            chain (str): Chain to query (e.g., 'arbitrum_mainnet')
+            resolution (str): Data resolution ('daily' or 'monthly')
+
+        Returns:
+            pandas.DataFrame: Account activity with columns:
+                'date', 'chain', 'account_action', 'nof_accounts'
+        """
+        chain_label = self.SUPPORTED_CHAINS[chain]
+        trunc_resolution = "day" if resolution == "daily" else "month"
+        query = f"""
+        SELECT
+            DATE_TRUNC('{trunc_resolution}', block_timestamp) AS date,
+            '{chain_label}' AS chain,
+            account_action as action,
+            COUNT(DISTINCT account_id) AS nof_accounts
+        FROM {self.environment}_{chain}.fct_core_account_activity_{chain}
+        WHERE block_timestamp >= '{start_date}' and block_timestamp <= '{end_date}'
+        GROUP BY 1, 2, 3
+        ORDER BY 1
+        """
+        with self.get_connection() as conn:
+            return pd.read_sql_query(query, conn)
+
+    def get_core_nof_stakers(
+        self,
+        start_date: datetime,
+        end_date: datetime,
+        chain: str = "arbitrum_mainnet",
+    ) -> pd.DataFrame:
+        """
+        Get core number of stakers.
+
+        Args:
+            start_date (datetime): Start date for the query
+            end_date (datetime): End date for the query
+            chain (str): Chain to query (e.g., 'arbitrum_mainnet')
+
+        Returns:
+            pandas.DataFrame: NoF Stakers with columns:
+                'date', 'chain', 'nof_stakers_daily'
+        """
+        chain_label = self.SUPPORTED_CHAINS[chain]
+        query = f"""
+        SELECT
+            date,
+            '{chain_label}' AS chain,
+            nof_stakers_daily
+        FROM {self.environment}_{chain}.fct_core_active_stakers_{chain}
+        WHERE date >= '{start_date}' and date <= '{end_date}'
+        ORDER BY date
+        """
+        with self.get_connection() as conn:
+            return pd.read_sql_query(query, conn)
+
     def get_perps_stats(
         self,
         start_date: datetime,
@@ -270,6 +337,41 @@ class SynthetixAPI:
         WHERE
             ts >= '{start_date}' and ts <= '{end_date}'
         ORDER BY ts
+        """
+        with self.get_connection() as conn:
+            return pd.read_sql_query(query, conn)
+
+    def get_perps_account_activity(
+        self,
+        start_date: datetime,
+        end_date: datetime,
+        chain: str = "arbitrum_mainnet",
+        resolution: str = "day",
+    ) -> pd.DataFrame:
+        """
+        Get perps account activity. Active accounts are those that have
+        settled at least one order in a day.
+
+        Args:
+            start_date (datetime): Start date for the query
+            end_date (datetime): End date for the query
+            chain (str): Chain to query (e.g., 'arbitrum_mainnet')
+            resolution (str): Data resolution ('day' or 'month')
+
+        Returns:
+            pandas.DataFrame: Perps account activity with columns:
+                'date', 'chain', 'nof_accounts'
+        """
+        chain_label = self.SUPPORTED_CHAINS[chain]
+        query = f"""
+        SELECT
+            DATE_TRUNC('{resolution}', ts) AS date,
+            '{chain_label}' AS chain,
+            COUNT(DISTINCT account_id) AS nof_accounts
+        FROM {self.environment}_{chain}.fct_perp_trades_{chain}
+        WHERE ts >= '{start_date}' and ts <= '{end_date}'
+        GROUP BY 1, 2
+        ORDER BY 1
         """
         with self.get_connection() as conn:
             return pd.read_sql_query(query, conn)

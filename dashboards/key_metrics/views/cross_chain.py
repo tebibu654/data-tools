@@ -173,9 +173,10 @@ chart_core_apr_by_collateral = chart_lines(
     y_format="%",
 )
 
+st.plotly_chart(chart_core_tvl_by_chain, use_container_width=True)
+
 core_chart_col1, core_chart_col2 = st.columns(2)
 with core_chart_col1:
-    st.plotly_chart(chart_core_tvl_by_chain, use_container_width=True)
     st.plotly_chart(chart_core_apr_by_collateral, use_container_width=True)
 with core_chart_col2:
     st.plotly_chart(chart_core_tvl_by_collateral, use_container_width=True)
@@ -198,7 +199,7 @@ if st.session_state.chain in [*SUPPORTED_CHAINS_PERPS, "all"]:
         data["perps_account_activity_daily"],
         x_col="date",
         y_cols="nof_accounts",
-        title="Perps Accounts Activity",
+        title="Perps Active Accounts",
         color="chain",
         y_format="#",
         help_text="Number of daily unique accounts that have at least one settled order",

@@ -31,11 +31,11 @@ st.sidebar.markdown(
 )
 
 # pages
-cross_chain = st.Page("views/cross_chain.py", title="Synthetix V3")
-v2 = st.Page("views/v2.py", title="Synthetix V2")
+cross_chain = st.Page("views/cross_chain.py", title="Synthetix Overview")
 lp = st.Page("views/lp.py", title="Liquidity Providers")
 perps = st.Page("views/perps.py", title="Perps")
 token = st.Page("views/token.py", title="$SNX Token")
+v2 = st.Page("views/v2.py", title="Synthetix V2")
 accounts = st.Page("views/accounts.py", title="Accounts Activity")
 
 # navigation

@@ -66,6 +66,10 @@ def fetch_data(date_range, chain):
             end_date=end_date.date(),
             chain=current_chain,
             resolution=PERPS_RESOLUTION,
+        )
+        for current_chain in chains_to_fetch
+        if current_chain in SUPPORTED_CHAINS_PERPS
+    ]
     perps_account_activity_daily = [
         st.session_state.api.get_perps_account_activity(
             start_date=start_date.date(),

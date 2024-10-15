@@ -1,5 +1,8 @@
 import plotly.express as px
-from typing import List, Optional, Union
+import pandas as pd
+import numpy as np
+import plotly.graph_objects as go
+from typing import List, Optional, Union, Any, Dict
 
 # Constants
 SEQUENTIAL_COLORS = [
@@ -16,6 +19,11 @@ SEQUENTIAL_COLORS = [
 CATEGORICAL_COLORS = ["#00D1FF", "#EB46FF", "#6B59FF", "#4FD1C5", "#1F68AC", "#FDE8FF"]
 FONT_FAMILY = "sans-serif"
 PLOTLY_TEMPLATE = "plotly_dark"
+DEFAULT_LINE_COLOR = "white"
+DEFAULT_LINE_WIDTH = 0
+HELP_TEXT_BGCOLOR = "#333333"
+HELP_TEXT_FONT_SIZE = 14
+HELP_TEXT_FONT_COLOR = "white"
 
 
 def set_axes(fig, x_format: str, y_format: str):
@@ -34,25 +42,28 @@ def set_axes(fig, x_format: str, y_format: str):
     return fig
 
 
-def update_layout(fig, orientation: str = "v", help_text: Optional[str] = None):
-    """Apply common layout updates to the figure."""
+def update_layout(
+    fig,
+    orientation: str = "v",
+    help_text: Optional[str] = None,
+    custom_data: Optional[Dict[str, Any]] = None,
+    hover_template: Optional[str] = None,
+):
+    """Apply common layout updates to the figure.
+
+    Args:
+        fig: The plotly figure to update.
+        orientation: The orientation of the chart ("v" for vertical, "h" for horizontal).
+        help_text: Optional text to display in the top-right corner of the chart.
+        custom_data: Optional data to add to the chart.
+        hover_template: Optional template for the chart's hover tooltip.
+    """
     fig.update_xaxes(title_text="", automargin=True)
     fig.update_yaxes(title_text="")
     fig.update_traces(hovertemplate=None)
 
-    fig.update_layout(
-        hovermode=f"{'y' if orientation == 'h' else 'x'} unified",
-        legend=dict(
-            orientation="h",
-            yanchor="top",
-            y=-0.2,
-            xanchor="center",
-            x=0.5,
-            title=None,
-        ),
-        font=dict(family=FONT_FAMILY),
-    )
-    if help_text:
+    # Add help text annotation to top-right corner of chart
+    if help_text is not None:
         fig.update_layout(
             annotations=[
                 dict(
@@ -67,13 +78,50 @@ def update_layout(fig, orientation: str = "v", help_text: Optional[str] = None):
                     yanchor="top",
                     hovertext=help_text,
                     hoverlabel=dict(
-                        bgcolor="#333333",
-                        font_size=14,
-                        font_color="white",
+                        bgcolor=HELP_TEXT_BGCOLOR,
+                        font_size=HELP_TEXT_FONT_SIZE,
+                        font_color=HELP_TEXT_FONT_COLOR,
                     ),
                 )
             ]
         )
+
+    # Format the chart's hover tooltip
+    for t in fig.data:
+        t.hovertemplate = hover_template
+
+    # Add custom data to chart
+    if custom_data is not None:
+        custom_df = custom_data.get("df")
+        if isinstance(custom_df, pd.DataFrame) and not custom_df.empty:
+            line_color = custom_data.get("line_color", DEFAULT_LINE_COLOR)
+            line_width = custom_data.get("line_width", DEFAULT_LINE_WIDTH)
+            custom_trace = go.Scatter(
+                x=custom_df.iloc[:, 0],
+                y=custom_df.iloc[:, 1],
+                mode="lines",
+                line=dict(color=line_color, width=line_width),
+                name=custom_data.get("name", "Custom Data"),
+                showlegend=custom_data.get("showlegend", False),
+            )
+            fig.add_trace(custom_trace)
+        for t in fig.data:
+            if t.name == custom_data.get("name", "Custom Data"):
+                t.hovertemplate = custom_data.get("hover_template", None)
+
+    # Add legend to chart and set hover mode
+    fig.update_layout(
+        hovermode=f"{'y' if orientation == 'h' else 'x'} unified",
+        legend=dict(
+            orientation="h",
+            yanchor="top",
+            y=-0.2,
+            xanchor="center",
+            x=0.5,
+            title=None,
+        ),
+        font=dict(family=FONT_FAMILY),
+    )
     return fig
 
 
@@ -141,6 +189,8 @@ def chart_bars(
     column: bool = False,
     barmode: str = "relative",
     help_text: Optional[str] = None,
+    custom_data: Optional[Dict[str, Any]] = None,
+    hover_template: Optional[str] = None,
 ):
     """Create a bar chart."""
     fig = px.bar(
@@ -155,7 +205,13 @@ def chart_bars(
         barmode=barmode,
     )
     fig = set_axes(fig, x_format, y_format)
-    return update_layout(fig, orientation="h" if column else "v", help_text=help_text)
+    return update_layout(
+        fig,
+        orientation="h" if column else "v",
+        help_text=help_text,
+        custom_data=custom_data,
+        hover_template=hover_template,
+    )
 
 
 def chart_area(
@@ -168,6 +224,8 @@ def chart_area(
     y_format: str = "$",
     column: bool = False,
     help_text: Optional[str] = None,
+    custom_data: Optional[Dict[str, Any]] = None,
+    hover_template: Optional[str] = None,
 ):
     """Create an area chart."""
     fig = px.area(
@@ -179,8 +237,15 @@ def chart_area(
         color_discrete_sequence=CATEGORICAL_COLORS,
         template=PLOTLY_TEMPLATE,
     )
+    fig.update_traces(hovertemplate=None)
     fig = set_axes(fig, x_format, y_format)
-    return update_layout(fig, orientation="h" if column else "v", help_text=help_text)
+    return update_layout(
+        fig,
+        orientation="h" if column else "v",
+        help_text=help_text,
+        custom_data=custom_data,
+        hover_template=hover_template,
+    )
 
 
 def chart_lines(

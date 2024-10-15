@@ -87,6 +87,14 @@ def fetch_data(date_range, chain):
             if core_stats_by_collateral
             else pd.DataFrame()
         ),
+        "core_stats_totals": (
+            pd.concat(core_stats, ignore_index=True)
+            .groupby("ts")
+            .agg(collateral_value=("collateral_value", "sum"))
+            .reset_index()
+            if core_stats
+            else pd.DataFrame()
+        ),
         "core_stats": (
             pd.concat(core_stats, ignore_index=True) if core_stats else pd.DataFrame()
         ),
@@ -98,8 +106,27 @@ def fetch_data(date_range, chain):
             if open_interest
             else pd.DataFrame()
         ),
+        "perps_stats_totals": (
+            pd.concat(perps_stats, ignore_index=True)
+            .groupby("ts")
+            .agg(
+                volume=("volume", "sum"),
+                exchange_fees=("exchange_fees", "sum"),
+            )
+            .reset_index()
+            if perps_stats
+            else pd.DataFrame()
+        ),
         "perps_account_activity_daily": (
             pd.concat(perps_account_activity_daily, ignore_index=True)
+            if perps_account_activity_daily
+            else pd.DataFrame()
+        ),
+        "perps_account_activity_totals": (
+            pd.concat(perps_account_activity_daily, ignore_index=True)
+            .groupby("date")
+            .agg(nof_accounts=("nof_accounts", "sum"))
+            .reset_index()
             if perps_account_activity_daily
             else pd.DataFrame()
         ),
@@ -133,6 +160,12 @@ if st.session_state.chain in [*SUPPORTED_CHAINS_CORE, "all"]:
         y_cols="collateral_value",
         title="TVL",
         color="chain",
+        hover_template="%{fullData.name}: %{y:$.4s}<extra></extra>",
+        custom_data={
+            "df": data["core_stats_totals"][["ts", "collateral_value"]],
+            "name": "Total",
+            "hover_template": "<b>%{fullData.name}: %{y:$.4s}</b><extra></extra>",
+        },
     )
     chart_core_tvl_by_collateral = chart_area(
         data["core_stats_by_collateral"],
@@ -140,6 +173,12 @@ if st.session_state.chain in [*SUPPORTED_CHAINS_CORE, "all"]:
         y_cols="collateral_value",
         title="TVL by Collateral",
         color="label",
+        hover_template="%{fullData.name}: %{y:$.4s}<extra></extra>",
+        custom_data={
+            "df": data["core_stats_totals"][["ts", "collateral_value"]],
+            "name": "Total",
+            "hover_template": "<b>%{fullData.name}: %{y:$.4s}</b><extra></extra>",
+        },
     )
     chart_core_apr_by_collateral = chart_lines(
         data["core_stats_by_collateral"],
@@ -166,6 +205,12 @@ if st.session_state.chain in [*SUPPORTED_CHAINS_PERPS, "all"]:
         y_cols="volume",
         title="Perps Volume",
         color="chain",
+        hover_template="%{fullData.name}: %{y:$.4s}<extra></extra>",
+        custom_data={
+            "df": data["perps_stats_totals"][["ts", "volume"]],
+            "name": "Total",
+            "hover_template": "<b>%{fullData.name}: %{y:$.4s}</b><extra></extra>",
+        },
     )
     chart_perps_account_activity_daily = chart_bars(
         data["perps_account_activity_daily"],
@@ -175,6 +220,12 @@ if st.session_state.chain in [*SUPPORTED_CHAINS_PERPS, "all"]:
         color="chain",
         y_format="#",
         help_text="Number of daily unique accounts that have at least one settled order",
+        hover_template="%{fullData.name}: %{y:,.0f}<extra></extra>",
+        custom_data={
+            "df": data["perps_account_activity_totals"][["date", "nof_accounts"]],
+            "name": "Total",
+            "hover_template": "<b>%{fullData.name}: %{y:,.0f}</b><extra></extra>",
+        },
     )
     chart_perps_fees_by_chain = chart_bars(
         data["perps_stats"],
@@ -182,6 +233,12 @@ if st.session_state.chain in [*SUPPORTED_CHAINS_PERPS, "all"]:
         y_cols="exchange_fees",
         title="Perps Fees",
         color="chain",
+        hover_template="%{fullData.name}: %{y:$.4s}<extra></extra>",
+        custom_data={
+            "df": data["perps_stats_totals"][["ts", "exchange_fees"]],
+            "name": "Total",
+            "hover_template": "<b>%{fullData.name}: %{y:$.4s}</b><extra></extra>",
+        },
     )
     chart_perps_oi_by_chain = chart_area(
         data["open_interest"],
@@ -189,6 +246,12 @@ if st.session_state.chain in [*SUPPORTED_CHAINS_PERPS, "all"]:
         y_cols="total_oi_usd",
         title="Open Interest",
         color="chain",
+        hover_template="%{fullData.name}: %{y:$.4s}<extra></extra>",
+        custom_data={
+            "df": data["open_interest"][["ts", "total_oi_usd"]],
+            "name": "Total",
+            "hover_template": "<b>%{fullData.name}: %{y:$.4s}</b><extra></extra>",
+        },
     )
 
     perps_chart_col1, perps_chart_col2 = st.columns(2)

@@ -66,6 +66,12 @@ def fetch_data(date_range, chain):
             end_date=end_date.date(),
             chain=current_chain,
             resolution=PERPS_RESOLUTION,
+    perps_account_activity_daily = [
+        st.session_state.api.get_perps_account_activity(
+            start_date=start_date.date(),
+            end_date=end_date.date(),
+            chain=current_chain,
+            resolution="day",
         )
         for current_chain in chains_to_fetch
         if current_chain in SUPPORTED_CHAINS_PERPS
@@ -86,6 +92,9 @@ def fetch_data(date_range, chain):
         "open_interest": (
             pd.concat(open_interest, ignore_index=True)
             if open_interest
+        "perps_account_activity_daily": (
+            pd.concat(perps_account_activity_daily, ignore_index=True)
+            if perps_account_activity_daily
             else pd.DataFrame()
         ),
     }
@@ -152,6 +161,15 @@ if st.session_state.chain in [*SUPPORTED_CHAINS_PERPS, "all"]:
         title="Perps Volume",
         color="chain",
     )
+    chart_perps_account_activity_daily = chart_bars(
+        data["perps_account_activity_daily"],
+        x_col="date",
+        y_cols="nof_accounts",
+        title="Perps Active Accounts",
+        color="chain",
+        y_format="#",
+        help_text="Number of daily unique accounts that have at least one settled order",
+    )
     chart_perps_fees_by_chain = chart_bars(
         data["perps_stats"],
         x_col="ts",
@@ -170,6 +188,7 @@ if st.session_state.chain in [*SUPPORTED_CHAINS_PERPS, "all"]:
     perps_chart_col1, perps_chart_col2 = st.columns(2)
     with perps_chart_col1:
         st.plotly_chart(chart_perps_volume_by_chain, use_container_width=True)
+        st.plotly_chart(chart_perps_account_activity_daily, use_container_width=True)
     with perps_chart_col2:
         st.plotly_chart(chart_perps_fees_by_chain, use_container_width=True)
 

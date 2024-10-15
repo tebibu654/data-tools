@@ -365,11 +365,11 @@ class SynthetixAPI:
         chain_label = self.SUPPORTED_CHAINS[chain]
         query = f"""
         SELECT
-            DATE_TRUNC('{resolution}', block_timestamp) AS date,
+            DATE_TRUNC('{resolution}', ts) AS date,
             '{chain_label}' AS chain,
             COUNT(DISTINCT account_id) AS nof_accounts
-        FROM {self.environment}_{chain}.fct_perp_accounts_settled_orders_{chain}
-        WHERE block_timestamp >= '{start_date}' and block_timestamp <= '{end_date}'
+        FROM {self.environment}_{chain}.fct_perp_trades_{chain}
+        WHERE ts >= '{start_date}' and ts <= '{end_date}'
         GROUP BY 1, 2
         ORDER BY 1
         """

@@ -10,7 +10,7 @@ from dashboards.key_metrics.constants import (
     SUPPORTED_CHAINS_PERPS,
 )
 
-st.markdown("# Synthetix V3 - Overview")
+st.markdown("# Synthetix V3 Stats")
 
 APR_RESOLUTION = "7d"
 PERPS_RESOLUTION = "daily"
@@ -60,6 +60,16 @@ def fetch_data(date_range, chain):
         for current_chain in chains_to_fetch
         if current_chain in SUPPORTED_CHAINS_PERPS
     ]
+    open_interest = [
+        st.session_state.api.get_perps_open_interest(
+            start_date=start_date.date(),
+            end_date=end_date.date(),
+            chain=current_chain,
+            resolution=PERPS_RESOLUTION,
+        )
+        for current_chain in chains_to_fetch
+        if current_chain in SUPPORTED_CHAINS_PERPS
+    ]
     perps_account_activity_daily = [
         st.session_state.api.get_perps_account_activity(
             start_date=start_date.date(),
@@ -90,6 +100,11 @@ def fetch_data(date_range, chain):
         ),
         "perps_stats": (
             pd.concat(perps_stats, ignore_index=True) if perps_stats else pd.DataFrame()
+        ),
+        "open_interest": (
+            pd.concat(open_interest, ignore_index=True)
+            if open_interest
+            else pd.DataFrame()
         ),
         "perps_stats_totals": (
             pd.concat(perps_stats, ignore_index=True)
@@ -134,52 +149,54 @@ with filter_col2:
         "Select chain",
         ["all", *SUPPORTED_CHAINS_CORE],
         index=0,
-        format_func=lambda x: "All" if x == "all" else SUPPORTED_CHAINS_CORE[x],
+        format_func=lambda x: ("All" if x == "all" else SUPPORTED_CHAINS_CORE[x]),
         key="chain",
     )
 
-chart_core_tvl_by_chain = chart_area(
-    data["core_stats"],
-    x_col="ts",
-    y_cols="collateral_value",
-    title="TVL",
-    color="chain",
-    hover_template="%{fullData.name}: %{y:$.4s}<extra></extra>",
-    custom_data={
-        "df": data["core_stats_totals"][["ts", "collateral_value"]],
-        "name": "Total",
-        "hover_template": "<b>%{fullData.name}: %{y:$.4s}</b><extra></extra>",
-    },
-)
-chart_core_tvl_by_collateral = chart_area(
-    data["core_stats_by_collateral"],
-    x_col="ts",
-    y_cols="collateral_value",
-    title="TVL by Collateral",
-    color="label",
-    hover_template="%{fullData.name}: %{y:$.4s}<extra></extra>",
-    custom_data={
-        "df": data["core_stats_totals"][["ts", "collateral_value"]],
-        "name": "Total",
-        "hover_template": "<b>%{fullData.name}: %{y:$.4s}</b><extra></extra>",
-    },
-)
-chart_core_apr_by_collateral = chart_lines(
-    data["core_stats_by_collateral"],
-    x_col="ts",
-    y_cols=f"apr_{APR_RESOLUTION}",
-    title="APR by Collateral (7d average)",
-    color="label",
-    y_format="%",
-)
+if st.session_state.chain in [*SUPPORTED_CHAINS_CORE, "all"]:
+    chart_core_tvl_by_chain = chart_area(
+        data["core_stats"],
+        x_col="ts",
+        y_cols="collateral_value",
+        title="TVL",
+        color="chain",
+        hover_template="%{fullData.name}: %{y:$.3s}<extra></extra>",
+        custom_data={
+            "df": data["core_stats_totals"][["ts", "collateral_value"]],
+            "name": "Total",
+            "hover_template": "<b>%{fullData.name}: %{y:$.3s}</b><extra></extra>",
+        },
+    )
+    chart_core_tvl_by_collateral = chart_area(
+        data["core_stats_by_collateral"],
+        x_col="ts",
+        y_cols="collateral_value",
+        title="TVL by Collateral",
+        color="label",
+        hover_template="%{fullData.name}: %{y:$.3s}<extra></extra>",
+        custom_data={
+            "df": data["core_stats_totals"][["ts", "collateral_value"]],
+            "name": "Total",
+            "hover_template": "<b>%{fullData.name}: %{y:$.3s}</b><extra></extra>",
+        },
+    )
+    chart_core_apr_by_collateral = chart_lines(
+        data["core_stats_by_collateral"],
+        x_col="ts",
+        y_cols=f"apr_{APR_RESOLUTION}",
+        title="APR by Collateral (7d average)",
+        color="label",
+        y_format="%",
+    )
 
-st.plotly_chart(chart_core_tvl_by_chain, use_container_width=True)
+    st.plotly_chart(chart_core_tvl_by_chain, use_container_width=True)
 
-core_chart_col1, core_chart_col2 = st.columns(2)
-with core_chart_col1:
-    st.plotly_chart(chart_core_apr_by_collateral, use_container_width=True)
-with core_chart_col2:
-    st.plotly_chart(chart_core_tvl_by_collateral, use_container_width=True)
+    core_chart_col1, core_chart_col2 = st.columns(2)
+
+    with core_chart_col1:
+        st.plotly_chart(chart_core_apr_by_collateral, use_container_width=True)
+    with core_chart_col2:
+        st.plotly_chart(chart_core_tvl_by_collateral, use_container_width=True)
 
 if st.session_state.chain in [*SUPPORTED_CHAINS_PERPS, "all"]:
     chart_perps_volume_by_chain = chart_bars(
@@ -188,11 +205,11 @@ if st.session_state.chain in [*SUPPORTED_CHAINS_PERPS, "all"]:
         y_cols="volume",
         title="Perps Volume",
         color="chain",
-        hover_template="%{fullData.name}: %{y:$.4s}<extra></extra>",
+        hover_template="%{fullData.name}: %{y:$.3s}<extra></extra>",
         custom_data={
             "df": data["perps_stats_totals"][["ts", "volume"]],
             "name": "Total",
-            "hover_template": "<b>%{fullData.name}: %{y:$.4s}</b><extra></extra>",
+            "hover_template": "<b>%{fullData.name}: %{y:$.3s}</b><extra></extra>",
         },
     )
     chart_perps_account_activity_daily = chart_bars(
@@ -216,9 +233,22 @@ if st.session_state.chain in [*SUPPORTED_CHAINS_PERPS, "all"]:
         y_cols="exchange_fees",
         title="Perps Fees",
         color="chain",
-        hover_template="%{fullData.name}: %{y:$.4s}<extra></extra>",
+        hover_template="%{fullData.name}: %{y:$.3s}<extra></extra>",
         custom_data={
             "df": data["perps_stats_totals"][["ts", "exchange_fees"]],
+            "name": "Total",
+            "hover_template": "<b>%{fullData.name}: %{y:$.3s}</b><extra></extra>",
+        },
+    )
+    chart_perps_oi_by_chain = chart_area(
+        data["open_interest"],
+        x_col="ts",
+        y_cols="total_oi_usd",
+        title="Open Interest",
+        color="chain",
+        hover_template="%{fullData.name}: %{y:$.4s}<extra></extra>",
+        custom_data={
+            "df": data["open_interest"][["ts", "total_oi_usd"]],
             "name": "Total",
             "hover_template": "<b>%{fullData.name}: %{y:$.4s}</b><extra></extra>",
         },
@@ -230,3 +260,4 @@ if st.session_state.chain in [*SUPPORTED_CHAINS_PERPS, "all"]:
         st.plotly_chart(chart_perps_account_activity_daily, use_container_width=True)
     with perps_chart_col2:
         st.plotly_chart(chart_perps_fees_by_chain, use_container_width=True)
+        st.plotly_chart(chart_perps_oi_by_chain, use_container_width=True)

@@ -32,6 +32,7 @@ st.sidebar.markdown(
 
 # pages
 cross_chain = st.Page("views/cross_chain.py", title="Synthetix V3")
+v2 = st.Page("views/v2.py", title="Synthetix V2")
 lp = st.Page("views/lp.py", title="Liquidity Providers")
 perps = st.Page("views/perps.py", title="Perps")
 token = st.Page("views/token.py", title="$SNX Token")
@@ -39,7 +40,7 @@ accounts = st.Page("views/accounts.py", title="Accounts Activity")
 
 # navigation
 pages = {
-    "": [cross_chain, lp, perps, token],
+    "": [cross_chain, lp, perps, token, v2],
 }
 nav = st.navigation(pages)
 nav.run()

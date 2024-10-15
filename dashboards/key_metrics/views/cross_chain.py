@@ -92,6 +92,8 @@ def fetch_data(date_range, chain):
         "open_interest": (
             pd.concat(open_interest, ignore_index=True)
             if open_interest
+            else pd.DataFrame()
+        ),
         "perps_account_activity_daily": (
             pd.concat(perps_account_activity_daily, ignore_index=True)
             if perps_account_activity_daily

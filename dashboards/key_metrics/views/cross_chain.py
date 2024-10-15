@@ -160,11 +160,11 @@ if st.session_state.chain in [*SUPPORTED_CHAINS_CORE, "all"]:
         y_cols="collateral_value",
         title="TVL",
         color="chain",
-        hover_template="%{fullData.name}: %{y:$.4s}<extra></extra>",
+        hover_template="%{fullData.name}: %{y:$.3s}<extra></extra>",
         custom_data={
             "df": data["core_stats_totals"][["ts", "collateral_value"]],
             "name": "Total",
-            "hover_template": "<b>%{fullData.name}: %{y:$.4s}</b><extra></extra>",
+            "hover_template": "<b>%{fullData.name}: %{y:$.3s}</b><extra></extra>",
         },
     )
     chart_core_tvl_by_collateral = chart_area(
@@ -173,11 +173,11 @@ if st.session_state.chain in [*SUPPORTED_CHAINS_CORE, "all"]:
         y_cols="collateral_value",
         title="TVL by Collateral",
         color="label",
-        hover_template="%{fullData.name}: %{y:$.4s}<extra></extra>",
+        hover_template="%{fullData.name}: %{y:$.3s}<extra></extra>",
         custom_data={
             "df": data["core_stats_totals"][["ts", "collateral_value"]],
             "name": "Total",
-            "hover_template": "<b>%{fullData.name}: %{y:$.4s}</b><extra></extra>",
+            "hover_template": "<b>%{fullData.name}: %{y:$.3s}</b><extra></extra>",
         },
     )
     chart_core_apr_by_collateral = chart_lines(
@@ -205,11 +205,11 @@ if st.session_state.chain in [*SUPPORTED_CHAINS_PERPS, "all"]:
         y_cols="volume",
         title="Perps Volume",
         color="chain",
-        hover_template="%{fullData.name}: %{y:$.4s}<extra></extra>",
+        hover_template="%{fullData.name}: %{y:$.3s}<extra></extra>",
         custom_data={
             "df": data["perps_stats_totals"][["ts", "volume"]],
             "name": "Total",
-            "hover_template": "<b>%{fullData.name}: %{y:$.4s}</b><extra></extra>",
+            "hover_template": "<b>%{fullData.name}: %{y:$.3s}</b><extra></extra>",
         },
     )
     chart_perps_account_activity_daily = chart_bars(
@@ -233,11 +233,11 @@ if st.session_state.chain in [*SUPPORTED_CHAINS_PERPS, "all"]:
         y_cols="exchange_fees",
         title="Perps Fees",
         color="chain",
-        hover_template="%{fullData.name}: %{y:$.4s}<extra></extra>",
+        hover_template="%{fullData.name}: %{y:$.3s}<extra></extra>",
         custom_data={
             "df": data["perps_stats_totals"][["ts", "exchange_fees"]],
             "name": "Total",
-            "hover_template": "<b>%{fullData.name}: %{y:$.4s}</b><extra></extra>",
+            "hover_template": "<b>%{fullData.name}: %{y:$.3s}</b><extra></extra>",
         },
     )
     chart_perps_oi_by_chain = chart_area(

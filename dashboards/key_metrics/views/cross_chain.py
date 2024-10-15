@@ -246,11 +246,11 @@ if st.session_state.chain in [*SUPPORTED_CHAINS_PERPS, "all"]:
         y_cols="total_oi_usd",
         title="Open Interest",
         color="chain",
-        hover_template="%{fullData.name}: %{y:$.4s}<extra></extra>",
+        hover_template="%{fullData.name}: %{y:$.3s}<extra></extra>",
         custom_data={
             "df": data["open_interest"][["ts", "total_oi_usd"]],
             "name": "Total",
-            "hover_template": "<b>%{fullData.name}: %{y:$.4s}</b><extra></extra>",
+            "hover_template": "<b>%{fullData.name}: %{y:$.3s}</b><extra></extra>",
         },
     )
 

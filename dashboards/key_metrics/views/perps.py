@@ -95,14 +95,14 @@ chart_perps_volume = chart_bars(
     data["perps_stats"],
     x_col="ts",
     y_cols="volume",
-    title="Volume",
+    title="Perps Volume",
     color="chain",
 )
 chart_perps_exchange_fees = chart_bars(
     data["perps_stats"],
     x_col="ts",
     y_cols="exchange_fees",
-    title="Exchange Fees",
+    title="Perps Fees",
     color="chain",
 )
 chart_perps_account_activity_daily = chart_bars(

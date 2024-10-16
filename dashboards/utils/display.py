@@ -2,6 +2,7 @@ import streamlit as st
 import base64
 from pathlib import Path
 import urllib.parse
+from streamlit_card import card
 
 
 def sidebar_logo():
@@ -61,3 +62,11 @@ def sidebar_icon():
     </style>
     """
     st.markdown(custom_css, unsafe_allow_html=True)
+
+
+def display_cards(card_configs, width=3):
+    """Display a list of cards in a grid layout, with a specified width."""
+    cols = st.columns(width)
+    for i, card_config in enumerate(card_configs):
+        with cols[i % width]:
+            card(**card_config, styles={"card": {"margin": "0px"}})

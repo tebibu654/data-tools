@@ -38,8 +38,24 @@ lp_cards = [
     },
 ]
 
+community_cards = [
+    {
+        "title": "Watcher",
+        "text": "Real-time dashboard monitoring Synthetix Perps",
+        "url": "https://dune.com/synthetix_community/synthetix-stats",
+    },
+    {
+        "title": "Dune",
+        "text": "Dune dashboards maintained by the community",
+        "url": "https://dune.com/synthetix_community/synthetix-stats",
+    },
+]
+
 st.markdown("# Perps")
 display_cards(perps_cards)
 
 st.markdown("# LPs")
 display_cards(lp_cards)
+
+st.markdown("# Community")
+display_cards(community_cards)

@@ -430,9 +430,11 @@ class SynthetixAPI:
             pandas.DataFrame: SNX token buyback data with columns:
                 'ts', 'snx_amount', 'usd_amount'
         """
+        chain_label = self.SUPPORTED_CHAINS[chain]
         query = f"""
         SELECT
             ts,
+            '{chain_label}' AS chain,
             snx_amount,
             usd_amount
         FROM {self.environment}_{chain}.fct_buyback_daily_{chain}

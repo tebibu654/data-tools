@@ -52,10 +52,29 @@ def fetch_data(date_range, chain):
             if core_stats_by_collateral
             else pd.DataFrame()
         ),
+        "core_stats_totals": (
+            pd.concat(core_stats_by_collateral, ignore_index=True)
+            .groupby("ts")
+            .agg(
+                collateral_value=("collateral_value", "sum"),
+                rewards_usd=("rewards_usd", "sum"),
+            )
+            .reset_index()
+            if core_stats_by_collateral
+            else pd.DataFrame()
+        ),
         "core_account_activity_daily": (
             pd.concat(core_account_activity_daily, ignore_index=True)
             .groupby(["date", "action"])
             .nof_accounts.sum()
+            .reset_index()
+            if core_account_activity_daily
+            else pd.DataFrame()
+        ),
+        "core_account_activity_totals": (
+            pd.concat(core_account_activity_daily, ignore_index=True)
+            .groupby("date")
+            .agg(nof_accounts=("nof_accounts", "sum"))
             .reset_index()
             if core_account_activity_daily
             else pd.DataFrame()
@@ -89,6 +108,12 @@ chart_core_tvl_by_collateral = chart_area(
     y_cols="collateral_value",
     title="TVL",
     color="label",
+    hover_template="%{fullData.name}: %{y:$.3s}<extra></extra>",
+    custom_data={
+        "df": data["core_stats_totals"][["ts", "collateral_value"]],
+        "name": "Total",
+        "hover_template": "<b>%{fullData.name}: %{y:$.3s}</b><extra></extra>",
+    },
 )
 chart_core_account_activity_daily = chart_lines(
     data["core_account_activity_daily"],
@@ -98,6 +123,12 @@ chart_core_account_activity_daily = chart_lines(
     color="action",
     y_format="#",
     help_text="Number of daily active accounts per action (Delegate, Withdraw, Claim)",
+    hover_template="%{fullData.name}: %{y:$.3s}<extra></extra>",
+    custom_data={
+        "df": data["core_account_activity_totals"][["date", "nof_accounts"]],
+        "name": "Total",
+        "hover_template": "<b>%{fullData.name}: %{y:$.3s}</b><extra></extra>",
+    },
 )
 chart_core_apr_by_collateral = chart_lines(
     data["core_stats_by_collateral"],
@@ -128,6 +159,12 @@ chart_core_rewards_usd_by_collateral = chart_bars(
     y_cols="rewards_usd",
     title="Rewards (USD)",
     color="label",
+    hover_template="%{fullData.name}: %{y:$.3s}<extra></extra>",
+    custom_data={
+        "df": data["core_stats_totals"][["ts", "rewards_usd"]],
+        "name": "Total",
+        "hover_template": "<b>%{fullData.name}: %{y:$.3s}</b><extra></extra>",
+    },
 )
 
 st.plotly_chart(chart_core_tvl_by_collateral, use_container_width=True)

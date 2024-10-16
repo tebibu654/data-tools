@@ -258,6 +258,8 @@ def chart_lines(
     x_format: str = "#",
     y_format: str = "$",
     help_text: Optional[str] = None,
+    custom_data: Optional[Dict[str, Any]] = None,
+    hover_template: Optional[str] = None,
 ):
     """Create a line chart."""
     fig = px.line(
@@ -271,7 +273,12 @@ def chart_lines(
     )
     fig.update_traces(line_shape=None if smooth else "hv")
     fig = set_axes(fig, x_format, y_format)
-    return update_layout(fig, help_text=help_text)
+    return update_layout(
+        fig,
+        help_text=help_text,
+        custom_data=custom_data,
+        hover_template=hover_template,
+    )
 
 
 def chart_oi(df, x_col: str, title: str, help_text: Optional[str] = None):

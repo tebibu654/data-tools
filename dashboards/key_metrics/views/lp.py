@@ -90,8 +90,6 @@ chart_core_tvl_by_collateral = chart_area(
     title="TVL",
     color_by="label",
     y_format="$",
-    sort_by_last_value=True,
-    human_format=True,
     custom_agg=dict(field="collateral_value", name="Total", agg="sum"),
 )
 chart_core_apr_by_collateral = chart_lines(
@@ -101,9 +99,7 @@ chart_core_apr_by_collateral = chart_lines(
     title=f"APR ({APR_RESOLUTION} average)",
     color_by="label",
     y_format="%",
-    human_format=True,
     stackgroup="",
-    sort_by_last_value=True,
     sort_ascending=True,
 )
 chart_core_apr_rewards_by_collateral = chart_lines(
@@ -113,8 +109,6 @@ chart_core_apr_rewards_by_collateral = chart_lines(
     title=f"APR (Rewards {APR_RESOLUTION} average)",
     color_by="label",
     y_format="%",
-    human_format=True,
-    sort_by_last_value=True,
     sort_ascending=True,
     stackgroup="",
 )

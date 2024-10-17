@@ -97,8 +97,6 @@ chart_perps_volume = chart_bars(
     y_cols="volume",
     title="Volume",
     color_by="chain",
-    human_format=True,
-    sort_by_last_value=True,
     custom_agg=dict(field="volume", name="Total", agg="sum"),
 )
 chart_perps_exchange_fees = chart_bars(
@@ -107,8 +105,6 @@ chart_perps_exchange_fees = chart_bars(
     y_cols="exchange_fees",
     title="Exchange Fees",
     color_by="chain",
-    human_format=True,
-    sort_by_last_value=True,
     custom_agg=dict(field="exchange_fees", name="Total", agg="sum"),
 )
 chart_perps_account_activity_daily = chart_bars(
@@ -119,8 +115,6 @@ chart_perps_account_activity_daily = chart_bars(
     color_by="chain",
     y_format="#",
     help_text="Number of daily unique accounts that have at least one settled order",
-    human_format=True,
-    sort_by_last_value=True,
     custom_agg=dict(field="nof_accounts", name="Total", agg="sum"),
 )
 chart_perps_account_activity_monthly = chart_bars(
@@ -131,8 +125,6 @@ chart_perps_account_activity_monthly = chart_bars(
     color_by="chain",
     y_format="#",
     help_text="Number of monthly unique accounts that have at least one settled order",
-    human_format=True,
-    sort_by_last_value=True,
     custom_agg=dict(field="nof_accounts", name="Total", agg="sum"),
 )
 

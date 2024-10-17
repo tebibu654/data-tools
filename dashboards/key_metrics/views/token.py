@@ -55,8 +55,6 @@ chart_core_tvl_by_collateral = chart_area(
     y_cols="collateral_value",
     title="SNX Token TVL",
     color_by="chain",
-    human_format=True,
-    sort_by_last_value=True,
 )
 
 chart_snx_token_buyback = chart_bars(
@@ -65,8 +63,6 @@ chart_snx_token_buyback = chart_bars(
     y_cols="usd_amount",
     title="SNX Token Buyback (Base)",
     color_by="chain",
-    human_format=True,
-    sort_by_last_value=True,
 )
 
 col1, col2 = st.columns(2)

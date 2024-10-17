@@ -160,9 +160,9 @@ def chart_bars(
     column: bool = False,
     barmode: str = "relative",
     help_text: Optional[str] = None,
-    human_format: bool = False,
+    human_format: bool = True,
     custom_agg: Optional[Dict[str, str]] = None,
-    sort_by_last_value: bool = False,
+    sort_by_last_value: bool = True,
     sort_ascending: bool = False,
 ):
     """Create a bar chart."""
@@ -203,10 +203,10 @@ def chart_area(
     x_format: str = "#",
     y_format: str = "$",
     column: bool = False,
-    sort_by_last_value: bool = False,
+    sort_by_last_value: bool = True,
     sort_ascending: bool = False,
     help_text: Optional[str] = None,
-    human_format: bool = False,
+    human_format: bool = True,
     custom_agg: Optional[Dict[str, str]] = None,
 ):
     """Create an area chart."""
@@ -246,9 +246,9 @@ def chart_lines(
     x_format: str = "#",
     y_format: str = "$",
     help_text: Optional[str] = None,
-    sort_by_last_value: bool = False,
+    sort_by_last_value: bool = True,
     sort_ascending: bool = False,
-    human_format: bool = False,
+    human_format: bool = True,
     custom_agg: Optional[Dict[str, str]] = None,
     stackgroup: Optional[str] = "one",
 ):
@@ -301,8 +301,8 @@ def _create_traces(
     trace_type: str = "bar",
     color_by: Optional[str] = None,
     custom_agg: Optional[Dict[str, str]] = None,
-    human_format: bool = False,
-    sort_by_last_value: bool = False,
+    human_format: bool = True,
+    sort_by_last_value: bool = True,
     sort_ascending: bool = False,
     y_format: str = "$",
     stackgroup: Optional[str] = "one",

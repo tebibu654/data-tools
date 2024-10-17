@@ -133,8 +133,6 @@ if st.session_state.chain in [*SUPPORTED_CHAINS_CORE, "all"]:
         y_cols="collateral_value",
         title="TVL",
         color_by="chain",
-        human_format=True,
-        sort_by_last_value=True,
         custom_agg=(
             dict(field="collateral_value", name="Total", agg="sum")
             if st.session_state.chain == "all"
@@ -147,8 +145,6 @@ if st.session_state.chain in [*SUPPORTED_CHAINS_CORE, "all"]:
         y_cols="collateral_value",
         title="TVL by Collateral",
         color_by="label",
-        human_format=True,
-        sort_by_last_value=True,
         custom_agg=dict(field="collateral_value", name="Total", agg="sum"),
     )
     chart_core_apr_by_collateral = chart_lines(
@@ -158,9 +154,7 @@ if st.session_state.chain in [*SUPPORTED_CHAINS_CORE, "all"]:
         title="APR by Collateral (7d average)",
         color_by="label",
         y_format="%",
-        human_format=True,
         stackgroup="",
-        sort_by_last_value=True,
         sort_ascending=True,
     )
 
@@ -180,8 +174,6 @@ if st.session_state.chain in [*SUPPORTED_CHAINS_PERPS, "all"]:
         y_cols="volume",
         title="Perps Volume",
         color_by="chain",
-        human_format=True,
-        sort_by_last_value=True,
         custom_agg=(
             dict(field="volume", name="Total", agg="sum")
             if st.session_state.chain == "all"
@@ -194,8 +186,6 @@ if st.session_state.chain in [*SUPPORTED_CHAINS_PERPS, "all"]:
         y_cols="nof_accounts",
         title="Perps Active Accounts",
         color_by="chain",
-        human_format=True,
-        sort_by_last_value=True,
         custom_agg=(
             dict(field="nof_accounts", name="Total", agg="sum")
             if st.session_state.chain == "all"
@@ -210,8 +200,6 @@ if st.session_state.chain in [*SUPPORTED_CHAINS_PERPS, "all"]:
         y_cols="exchange_fees",
         title="Perps Fees",
         color_by="chain",
-        human_format=True,
-        sort_by_last_value=True,
         custom_agg=(
             dict(field="exchange_fees", name="Total", agg="sum")
             if st.session_state.chain == "all"
@@ -224,8 +212,6 @@ if st.session_state.chain in [*SUPPORTED_CHAINS_PERPS, "all"]:
         y_cols="total_oi_usd",
         title="Open Interest",
         color_by="chain",
-        human_format=True,
-        sort_by_last_value=True,
         custom_agg=(
             dict(field="total_oi_usd", name="Total", agg="sum")
             if st.session_state.chain == "all"

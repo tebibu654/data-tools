@@ -5,7 +5,7 @@ import plotly.express as px
 from dashboards.utils.formatting import human_format as format_func
 
 # Constants
-HOVER_PREFIX_MAP = {"$": "$", "#": "", "%": "%"}
+HOVER_PREFIX_MAP = {"$": "$", "#": "", "%": ""}
 SEQUENTIAL_COLORS = [
     "#E5FAFF",
     "#B7F2FF",
@@ -164,7 +164,6 @@ def chart_bars(
     custom_agg: Optional[Dict[str, str]] = None,
     sort_by_last_value: bool = False,
     sort_ascending: bool = False,
-    no_decimals: bool = False,
 ):
     """Create a bar chart."""
     traces = _create_traces(
@@ -178,7 +177,6 @@ def chart_bars(
         sort_by_last_value,
         sort_ascending,
         y_format,
-        no_decimals,
     )
     fig = go.Figure(traces)
     fig.update_layout(
@@ -210,7 +208,6 @@ def chart_area(
     help_text: Optional[str] = None,
     human_format: bool = False,
     custom_agg: Optional[Dict[str, str]] = None,
-    no_decimals: bool = False,
 ):
     """Create an area chart."""
     traces = _create_traces(
@@ -224,7 +221,6 @@ def chart_area(
         sort_by_last_value=sort_by_last_value,
         sort_ascending=sort_ascending,
         y_format=y_format,
-        no_decimals=no_decimals,
     )
     fig = go.Figure(traces)
     fig.update_layout(
@@ -245,21 +241,36 @@ def chart_lines(
     x_col: str,
     y_cols: Union[str, List[str]],
     title: str,
-    color: Optional[str] = None,
+    color_by: Optional[str] = None,
     smooth: bool = False,
     x_format: str = "#",
     y_format: str = "$",
     help_text: Optional[str] = None,
+    sort_by_last_value: bool = False,
+    sort_ascending: bool = False,
+    human_format: bool = False,
+    custom_agg: Optional[Dict[str, str]] = None,
+    stackgroup: Optional[str] = "one",
 ):
     """Create a line chart."""
-    fig = px.line(
+    traces = _create_traces(
         df,
-        x=x_col,
-        y=y_cols,
+        x_col,
+        y_cols,
+        trace_type="line",
+        color_by=color_by,
+        custom_agg=custom_agg,
+        human_format=human_format,
+        sort_by_last_value=sort_by_last_value,
+        sort_ascending=sort_ascending,
+        y_format=y_format,
+        stackgroup=stackgroup,
+    )
+    fig = go.Figure(traces)
+    fig.update_layout(
         title=title,
-        color=color,
-        color_discrete_sequence=CATEGORICAL_COLORS,
         template=PLOTLY_TEMPLATE,
+        font=dict(family=FONT_FAMILY),
     )
     fig.update_traces(line_shape=None if smooth else "hv")
     fig = set_axes(fig, x_format, y_format)
@@ -294,15 +305,17 @@ def _create_traces(
     sort_by_last_value: bool = False,
     sort_ascending: bool = False,
     y_format: str = "$",
-    no_decimals: bool = False,
+    stackgroup: Optional[str] = "one",
 ):
     traces = []
+    percentage = True if y_format == "%" else False
+    no_decimals = False if y_format == "$" else True
     if color_by is not None:
         for i, (label, group) in enumerate(df.groupby(color_by)):
             group.reset_index(inplace=True)
             _color = CATEGORICAL_COLORS[i % len(CATEGORICAL_COLORS)]
             custom_data = (
-                group[y_cols].apply(format_func, args=(no_decimals))
+                group[y_cols].apply(format_func, args=(no_decimals, percentage))
                 if human_format
                 else group[y_cols]
             )
@@ -314,7 +327,7 @@ def _create_traces(
                 trace_type=trace_type,
                 color=_color,
                 legendrank=0,
-                stackgroup="one",
+                stackgroup=stackgroup,
                 custom_data=custom_data,
                 hover_template=hover_template,
                 show_legend=True,
@@ -327,30 +340,32 @@ def _create_traces(
         trace["legendrank"] = -rank
 
     if custom_agg is not None:
-        for custom_agg in custom_agg:
-            field = custom_agg.get("field")
-            name = custom_agg.get("name", "Custom Field")
-            agg = custom_agg.get("agg", "sum")
-            y = df.groupby(x_col)[field].agg(agg).reset_index()
-            custom_data = (
-                y[field].apply(format_func, args=(no_decimals))
-                if human_format
-                else y[field]
+        field = custom_agg.get("field")
+        name = custom_agg.get("name", "Custom Field")
+        agg = custom_agg.get("agg", "sum")
+        y = df.groupby(x_col)[field].agg(agg).reset_index()
+        custom_data = (
+            y[field].apply(
+                format_func,
+                args=(no_decimals, percentage),
             )
-            hover_template = f"<extra></extra><b>%{{fullData.name}}: {HOVER_PREFIX_MAP[y_format]}%{{customdata}}</b>"
-            trace = _create_trace(
-                x=y[x_col],
-                y=y[field],
-                name=name,
-                trace_type="line",
-                color=_color,
-                legendrank=-1000,
-                custom_data=custom_data,
-                show_legend=False,
-                hover_template=hover_template,
-                linewidth=0,
-            )
-            traces.append(trace)
+            if human_format
+            else y[field]
+        )
+        hover_template = f"<extra></extra><b>%{{fullData.name}}: {HOVER_PREFIX_MAP[y_format]}%{{customdata}}</b>"
+        trace = _create_trace(
+            x=y[x_col],
+            y=y[field],
+            name=name,
+            trace_type="line",
+            color=_color,
+            legendrank=-1000,
+            custom_data=custom_data,
+            show_legend=False,
+            hover_template=hover_template,
+            linewidth=0,
+        )
+        traces.append(trace)
 
     return traces
 

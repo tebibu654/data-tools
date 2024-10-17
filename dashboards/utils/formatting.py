@@ -1,4 +1,7 @@
-def human_format(num, no_decimals=False):
+def human_format(num, no_decimals=False, percentage=False):
+    if percentage:
+        return f"{num:.2%}"
+
     # Check if the number is zero
     if num == 0:
         return "0"

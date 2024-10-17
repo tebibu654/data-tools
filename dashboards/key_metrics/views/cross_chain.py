@@ -135,7 +135,11 @@ if st.session_state.chain in [*SUPPORTED_CHAINS_CORE, "all"]:
         color_by="chain",
         human_format=True,
         sort_by_last_value=True,
-        custom_agg=[dict(field="collateral_value", name="Total", agg="sum")],
+        custom_agg=(
+            dict(field="collateral_value", name="Total", agg="sum")
+            if st.session_state.chain == "all"
+            else None
+        ),
     )
     chart_core_tvl_by_collateral = chart_area(
         data["core_stats_by_collateral"],
@@ -145,15 +149,19 @@ if st.session_state.chain in [*SUPPORTED_CHAINS_CORE, "all"]:
         color_by="label",
         human_format=True,
         sort_by_last_value=True,
-        custom_agg=[dict(field="collateral_value", name="Total", agg="sum")],
+        custom_agg=dict(field="collateral_value", name="Total", agg="sum"),
     )
     chart_core_apr_by_collateral = chart_lines(
         data["core_stats_by_collateral"],
         x_col="ts",
         y_cols=f"apr_{APR_RESOLUTION}",
         title="APR by Collateral (7d average)",
-        color="label",
+        color_by="label",
         y_format="%",
+        human_format=True,
+        stackgroup="",
+        sort_by_last_value=True,
+        sort_ascending=True,
     )
 
     st.plotly_chart(chart_core_tvl_by_chain, use_container_width=True)
@@ -174,7 +182,11 @@ if st.session_state.chain in [*SUPPORTED_CHAINS_PERPS, "all"]:
         color_by="chain",
         human_format=True,
         sort_by_last_value=True,
-        custom_agg=[dict(field="volume", name="Total", agg="sum")],
+        custom_agg=(
+            dict(field="volume", name="Total", agg="sum")
+            if st.session_state.chain == "all"
+            else None
+        ),
     )
     chart_perps_account_activity_daily = chart_bars(
         data["perps_account_activity_daily"],
@@ -184,10 +196,13 @@ if st.session_state.chain in [*SUPPORTED_CHAINS_PERPS, "all"]:
         color_by="chain",
         human_format=True,
         sort_by_last_value=True,
-        custom_agg=[dict(field="nof_accounts", name="Total", agg="sum")],
+        custom_agg=(
+            dict(field="nof_accounts", name="Total", agg="sum")
+            if st.session_state.chain == "all"
+            else None
+        ),
         y_format="#",
         help_text="Number of daily unique accounts that have at least one settled order",
-        no_decimals=True,
     )
     chart_perps_fees_by_chain = chart_bars(
         data["perps_stats"],
@@ -197,7 +212,11 @@ if st.session_state.chain in [*SUPPORTED_CHAINS_PERPS, "all"]:
         color_by="chain",
         human_format=True,
         sort_by_last_value=True,
-        custom_agg=[dict(field="exchange_fees", name="Total", agg="sum")],
+        custom_agg=(
+            dict(field="exchange_fees", name="Total", agg="sum")
+            if st.session_state.chain == "all"
+            else None
+        ),
     )
     chart_perps_oi_by_chain = chart_area(
         data["open_interest"],
@@ -207,7 +226,11 @@ if st.session_state.chain in [*SUPPORTED_CHAINS_PERPS, "all"]:
         color_by="chain",
         human_format=True,
         sort_by_last_value=True,
-        custom_agg=[dict(field="total_oi_usd", name="Total", agg="sum")],
+        custom_agg=(
+            dict(field="total_oi_usd", name="Total", agg="sum")
+            if st.session_state.chain == "all"
+            else None
+        ),
     )
 
     perps_chart_col1, perps_chart_col2 = st.columns(2)

@@ -1,14 +1,10 @@
-import plotly.express as px
+from typing import List, Optional, Union, Dict
 import pandas as pd
-import numpy as np
 import plotly.graph_objects as go
-from typing import List, Optional, Union, Any, Dict
+import plotly.express as px
 from dashboards.utils.formatting import human_format as format_func
 
 # Constants
-AGGS = {
-    "sum": np.sum,
-}
 HOVER_PREFIX_MAP = {"$": "$", "#": "", "%": "%"}
 SEQUENTIAL_COLORS = [
     "#E5FAFF",
@@ -168,18 +164,21 @@ def chart_bars(
     custom_agg: Optional[Dict[str, str]] = None,
     sort_by_last_value: bool = False,
     sort_ascending: bool = False,
+    no_decimals: bool = False,
 ):
     """Create a bar chart."""
     traces = _create_traces(
         df,
         x_col,
         y_cols,
+        "bar",
         color_by,
         custom_agg,
         human_format,
         sort_by_last_value,
         sort_ascending,
         y_format,
+        no_decimals,
     )
     fig = go.Figure(traces)
     fig.update_layout(
@@ -187,6 +186,7 @@ def chart_bars(
         template=PLOTLY_TEMPLATE,
         font=dict(family=FONT_FAMILY),
         barmode=barmode,
+        legend_traceorder="reversed",
     )
     fig = set_axes(fig, x_format, y_format)
     return update_layout(
@@ -210,18 +210,21 @@ def chart_area(
     help_text: Optional[str] = None,
     human_format: bool = False,
     custom_agg: Optional[Dict[str, str]] = None,
+    no_decimals: bool = False,
 ):
     """Create an area chart."""
     traces = _create_traces(
-        df,
-        x_col,
-        y_cols,
-        color_by,
-        custom_agg,
-        human_format,
-        sort_by_last_value,
-        sort_ascending,
-        y_format,
+        df=df,
+        x_col=x_col,
+        y_cols=y_cols,
+        trace_type="line",
+        color_by=color_by,
+        custom_agg=custom_agg,
+        human_format=human_format,
+        sort_by_last_value=sort_by_last_value,
+        sort_ascending=sort_ascending,
+        y_format=y_format,
+        no_decimals=no_decimals,
     )
     fig = go.Figure(traces)
     fig.update_layout(
@@ -284,70 +287,110 @@ def _create_traces(
     df,
     x_col: str,
     y_cols: List[str],
+    trace_type: str = "bar",
     color_by: Optional[str] = None,
     custom_agg: Optional[Dict[str, str]] = None,
     human_format: bool = False,
     sort_by_last_value: bool = False,
     sort_ascending: bool = False,
     y_format: str = "$",
+    no_decimals: bool = False,
 ):
     traces = []
     if color_by is not None:
         for i, (label, group) in enumerate(df.groupby(color_by)):
+            group.reset_index(inplace=True)
             _color = CATEGORICAL_COLORS[i % len(CATEGORICAL_COLORS)]
-            traces.append(
-                go.Scatter(
-                    x=group[x_col],
-                    y=group[y_cols],
-                    name=label,
-                    legendrank=0,
-                    line=dict(width=2, color=_color),
-                    mode="lines",
-                    stackgroup="one",
-                    customdata=(
-                        group[y_cols].apply(format_func)
-                        if human_format
-                        else group[y_cols]
-                    ),
-                    hovertemplate=f"<extra></extra>%{{fullData.name}}: {HOVER_PREFIX_MAP[y_format]}%{{customdata}}",
-                )
+            custom_data = (
+                group[y_cols].apply(format_func, args=(no_decimals))
+                if human_format
+                else group[y_cols]
             )
-    else:
-        for i, y_col in enumerate(y_cols):
-            _color = CATEGORICAL_COLORS[i % len(CATEGORICAL_COLORS)]
-            traces.append(
-                go.Scatter(
-                    x=df[x_col],
-                    y=df[y_col],
-                    name=y_col,
-                    legendrank=0,
-                    line=dict(width=2, color=_color),
-                )
+            hover_template = f"<extra></extra>%{{fullData.name}}: {HOVER_PREFIX_MAP[y_format]}%{{customdata}}"
+            trace = _create_trace(
+                group[x_col],
+                group[y_cols],
+                name=label,
+                trace_type=trace_type,
+                color=_color,
+                legendrank=0,
+                stackgroup="one",
+                custom_data=custom_data,
+                hover_template=hover_template,
+                show_legend=True,
             )
+            traces.append(trace)
+
     if sort_by_last_value:
         traces.sort(key=lambda trace: trace["y"][-1], reverse=not sort_ascending)
     for rank, trace in enumerate(traces):
-        trace["legendrank"] = rank
+        trace["legendrank"] = -rank
 
     if custom_agg is not None:
         for custom_agg in custom_agg:
             field = custom_agg.get("field")
             name = custom_agg.get("name", "Custom Field")
             agg = custom_agg.get("agg", "sum")
-            y = df.groupby(x_col)[field].agg(AGGS[agg]).reset_index()
-            traces.append(
-                go.Scatter(
-                    x=y[x_col],
-                    y=y[field],
-                    name=name,
-                    legendrank=1000,
-                    line=dict(width=0),
-                    customdata=(
-                        y[field].apply(format_func) if human_format else y[field]
-                    ),
-                    showlegend=False,
-                    hovertemplate=f"<extra></extra><b>%{{fullData.name}}: {HOVER_PREFIX_MAP[y_format]}%{{customdata}}</b>",
-                )
+            y = df.groupby(x_col)[field].agg(agg).reset_index()
+            custom_data = (
+                y[field].apply(format_func, args=(no_decimals))
+                if human_format
+                else y[field]
             )
+            hover_template = f"<extra></extra><b>%{{fullData.name}}: {HOVER_PREFIX_MAP[y_format]}%{{customdata}}</b>"
+            trace = _create_trace(
+                x=y[x_col],
+                y=y[field],
+                name=name,
+                trace_type="line",
+                color=_color,
+                legendrank=-1000,
+                custom_data=custom_data,
+                show_legend=False,
+                hover_template=hover_template,
+                linewidth=0,
+            )
+            traces.append(trace)
 
     return traces
+
+
+def _create_trace(
+    x: pd.Series,
+    y: pd.Series,
+    name: str,
+    trace_type: str = "bar",
+    color: str = "white",
+    legendrank: int = 0,
+    stackgroup: Optional[str] = None,
+    custom_data: Optional[pd.Series] = None,
+    hover_template: Optional[str] = None,
+    show_legend: bool = True,
+    linewidth: int = 2,
+):
+    if trace_type == "bar":
+        return go.Bar(
+            x=x,
+            y=y,
+            name=name,
+            legendrank=legendrank,
+            marker=dict(color=color),
+            customdata=custom_data,
+            hovertemplate=hover_template,
+            showlegend=show_legend,
+        )
+    elif trace_type == "line":
+        return go.Scatter(
+            x=x,
+            y=y,
+            name=name,
+            stackgroup=stackgroup,
+            legendrank=legendrank,
+            line=dict(width=linewidth, color=color),
+            mode="lines",
+            customdata=custom_data,
+            hovertemplate=hover_template,
+            showlegend=show_legend,
+        )
+    else:
+        raise ValueError(f"Invalid trace type: {trace_type}")

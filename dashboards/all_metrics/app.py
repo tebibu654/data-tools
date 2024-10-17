@@ -30,11 +30,12 @@ ethereum = st.Page("views/ethereum.py", title="Ethereum")
 base = st.Page("views/base.py", title="Base")
 arbitrum = st.Page("views/arbitrum.py", title="Arbitrum")
 optimism = st.Page("views/optimism.py", title="Optimism")
+links = st.Page("../key_metrics/views/links.py", title="Links")
 
 
 # navigation
 pages = {
-    "": [all_chains, ethereum, base, arbitrum, optimism],
+    "": [all_chains, ethereum, base, arbitrum, optimism, links],
 }
 nav = st.navigation(pages)
 nav.run()

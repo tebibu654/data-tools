@@ -1,4 +1,6 @@
+import numpy as np
 from typing import List, Optional, Union, Dict
+
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
@@ -104,25 +106,41 @@ def chart_many_bars(
     color: Optional[str] = None,
     x_format: str = "#",
     y_format: str = "$",
-    help_text: Optional[str] = None,
 ):
     """Create a bar chart with multiple series."""
     fig = px.bar(
         df,
         x=x_col,
         y=y_cols,
-        title=title,
         color=color,
-        color_discrete_sequence=CATEGORICAL_COLORS,
-        template=PLOTLY_TEMPLATE,
     )
+
+    traces = []
+    for trace in fig.data:
+        if title == "Volume":
+            if trace["y"].sum() < 1:
+                continue
+        traces.append(trace)
+    traces.sort(key=lambda trace: trace["y"][-1], reverse=True)
+    for rank, trace in enumerate(traces):
+        trace["legendrank"] = -rank
+        trace["marker"]["color"] = CATEGORICAL_COLORS[rank % len(CATEGORICAL_COLORS)]
+
+    fig = go.Figure(traces)
     fig = set_axes(fig, x_format, y_format)
     fig.update_xaxes(title_text="", automargin=True)
     fig.update_yaxes(title_text="")
     fig.update_layout(
+        title=title,
         font=dict(family=FONT_FAMILY),
+        template=PLOTLY_TEMPLATE,
+        barmode="stack",
+        legend_traceorder="reversed",
     )
-    return update_layout(fig, help_text=help_text)
+    fig.update_traces(
+        hovertemplate="<extra></extra>%{x}<br><br>Market Symbol: %{fullData.name}<br>Value: %{y:.3s}"
+    )
+    return fig
 
 
 def chart_many_lines(
@@ -133,7 +151,6 @@ def chart_many_lines(
     color: Optional[str] = None,
     x_format: str = "#",
     y_format: str = "$",
-    help_text: Optional[str] = None,
 ):
     """Create a line chart with multiple series."""
     fig = px.line(
@@ -146,7 +163,7 @@ def chart_many_lines(
         template=PLOTLY_TEMPLATE,
     )
     fig = set_axes(fig, x_format, y_format)
-    return update_layout(fig, help_text=help_text)
+    return fig
 
 
 def chart_bars(
@@ -297,7 +314,7 @@ def chart_oi(df, x_col: str, title: str, help_text: Optional[str] = None):
 def _create_traces(
     df,
     x_col: str,
-    y_cols: List[str],
+    y_cols: Union[str, List[str]],
     trace_type: str = "bar",
     color_by: Optional[str] = None,
     custom_agg: Optional[Dict[str, str]] = None,
@@ -320,6 +337,9 @@ def _create_traces(
                 else group[y_cols]
             )
             hover_template = f"<extra></extra>%{{fullData.name}}: {HOVER_PREFIX_MAP[y_format]}%{{customdata}}"
+            hover_templates = np.where(
+                group[y_cols] > 0, hover_template, "<extra></extra>"
+            )
             trace = _create_trace(
                 group[x_col],
                 group[y_cols],
@@ -329,6 +349,42 @@ def _create_traces(
                 legendrank=0,
                 stackgroup=stackgroup,
                 custom_data=custom_data,
+                hover_template=hover_templates,
+                show_legend=True,
+            )
+            traces.append(trace)
+    else:
+        if isinstance(y_cols, list):
+            for i, y_col in enumerate(y_cols):
+                _color = CATEGORICAL_COLORS[i % len(CATEGORICAL_COLORS)]
+                hover_template = f"<extra></extra>%{{fullData.name}}: {HOVER_PREFIX_MAP[y_format]}%{{customdata}}"
+                trace = _create_trace(
+                    x=df[x_col],
+                    y=df[y_col],
+                    name=y_col,
+                    color=_color,
+                    trace_type=trace_type,
+                    legendrank=0,
+                    custom_data=df[y_col].apply(
+                        format_func, args=(no_decimals, percentage)
+                    ),
+                    hover_template=hover_template,
+                    show_legend=True,
+                )
+                traces.append(trace)
+        else:
+            _color = CATEGORICAL_COLORS[0]
+            hover_template = f"<extra></extra>%{{fullData.name}}: {HOVER_PREFIX_MAP[y_format]}%{{customdata}}"
+            trace = _create_trace(
+                x=df[x_col],
+                y=df[y_cols],
+                name=y_cols,
+                color=_color,
+                trace_type=trace_type,
+                legendrank=0,
+                custom_data=df[y_cols].apply(
+                    format_func, args=(no_decimals, percentage)
+                ),
                 hover_template=hover_template,
                 show_legend=True,
             )
@@ -340,8 +396,10 @@ def _create_traces(
         trace["legendrank"] = -rank
 
     if custom_agg is not None:
-        field = custom_agg.get("field")
-        name = custom_agg.get("name", "Custom Field")
+        field = custom_agg.get(
+            "field", y_cols if isinstance(y_cols, str) else y_cols[0]
+        )
+        name = custom_agg.get("name", "Total")
         agg = custom_agg.get("agg", "sum")
         y = df.groupby(x_col)[field].agg(agg).reset_index()
         custom_data = (

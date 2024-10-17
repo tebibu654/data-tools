@@ -69,4 +69,13 @@ def display_cards(card_configs, width=3):
     cols = st.columns(width)
     for i, card_config in enumerate(card_configs):
         with cols[i % width]:
-            card(**card_config, styles={"card": {"margin": "0px"}})
+            card(
+                **card_config,
+                styles={
+                    "card": {
+                        "width": "100%",
+                        "margin": "0px",
+                        "background-color": "#1A1A5A",
+                    }
+                },
+            )

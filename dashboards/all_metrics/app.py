@@ -1,4 +1,5 @@
 import streamlit as st
+from dashboards.utils.display import sidebar_logo, sidebar_icon
 from api.internal_api import SynthetixAPI, get_db_config
 
 st.set_page_config(
@@ -6,6 +7,8 @@ st.set_page_config(
     page_icon=f"dashboards/static/favicon.ico",
     layout="wide",
 )
+sidebar_logo()
+sidebar_icon()
 
 hide_footer = """
     <style>

@@ -2,6 +2,8 @@ def human_format(num, no_decimals=False):
     # Check if the number is zero
     if num == 0:
         return "0"
+    if no_decimals:
+        return f"{num:.0f}"
 
     # Define the magnitude labels for numbers greater than or equal to 1
     magnitude_labels = ["", "K", "M", "B", "T"]
@@ -16,8 +18,6 @@ def human_format(num, no_decimals=False):
         magnitude += 1
         num /= 1000.0
 
-    if num < 1000 and no_decimals:
-        return f"{num:.0f}"
     # Format the number to ensure 3 digits
     if num >= 100:
         # If the number is 100 or greater, no decimal places are needed

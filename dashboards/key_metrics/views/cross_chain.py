@@ -87,14 +87,6 @@ def fetch_data(date_range, chain):
             if core_stats_by_collateral
             else pd.DataFrame()
         ),
-        "core_stats_totals": (
-            pd.concat(core_stats, ignore_index=True)
-            .groupby("ts")
-            .agg(collateral_value=("collateral_value", "sum"))
-            .reset_index()
-            if core_stats
-            else pd.DataFrame()
-        ),
         "core_stats": (
             pd.concat(core_stats, ignore_index=True) if core_stats else pd.DataFrame()
         ),
@@ -106,27 +98,8 @@ def fetch_data(date_range, chain):
             if open_interest
             else pd.DataFrame()
         ),
-        "perps_stats_totals": (
-            pd.concat(perps_stats, ignore_index=True)
-            .groupby("ts")
-            .agg(
-                volume=("volume", "sum"),
-                exchange_fees=("exchange_fees", "sum"),
-            )
-            .reset_index()
-            if perps_stats
-            else pd.DataFrame()
-        ),
         "perps_account_activity_daily": (
             pd.concat(perps_account_activity_daily, ignore_index=True)
-            if perps_account_activity_daily
-            else pd.DataFrame()
-        ),
-        "perps_account_activity_totals": (
-            pd.concat(perps_account_activity_daily, ignore_index=True)
-            .groupby("date")
-            .agg(nof_accounts=("nof_accounts", "sum"))
-            .reset_index()
             if perps_account_activity_daily
             else pd.DataFrame()
         ),
@@ -214,6 +187,7 @@ if st.session_state.chain in [*SUPPORTED_CHAINS_PERPS, "all"]:
         custom_agg=[dict(field="nof_accounts", name="Total", agg="sum")],
         y_format="#",
         help_text="Number of daily unique accounts that have at least one settled order",
+        no_decimals=True,
     )
     chart_perps_fees_by_chain = chart_bars(
         data["perps_stats"],

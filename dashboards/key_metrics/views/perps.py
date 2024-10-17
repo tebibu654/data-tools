@@ -122,7 +122,7 @@ chart_perps_volume = chart_bars(
     data["perps_stats"],
     x_col="ts",
     y_cols="volume",
-    title="Volume",
+    title="Perps Volume",
     color="chain",
     hover_template="%{fullData.name}: %{y:$.3s}<extra></extra>",
     custom_data={
@@ -135,7 +135,7 @@ chart_perps_exchange_fees = chart_bars(
     data["perps_stats"],
     x_col="ts",
     y_cols="exchange_fees",
-    title="Exchange Fees",
+    title="Perps Fees",
     color="chain",
     hover_template="%{fullData.name}: %{y:$.3s}<extra></extra>",
     custom_data={

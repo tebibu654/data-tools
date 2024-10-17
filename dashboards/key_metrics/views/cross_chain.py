@@ -10,7 +10,7 @@ from dashboards.key_metrics.constants import (
     SUPPORTED_CHAINS_PERPS,
 )
 
-st.markdown("# Synthetix V3 Stats")
+st.markdown("# Synthetix Overview")
 
 APR_RESOLUTION = "7d"
 PERPS_RESOLUTION = "daily"

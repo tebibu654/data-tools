@@ -24,17 +24,17 @@ lp_cards = [
     {
         "title": "Base LP",
         "text": "Synthetix V3 liquidity pools on Base",
-        "url": "https://synthetix-all.streamlit.app/base?page=Perps",
+        "url": "https://synthetix-all.streamlit.app/base?page=LP",
     },
     {
         "title": "Arbitrum LP",
         "text": "Synthetix V3 liquidity pools on Arbitrum",
-        "url": "https://synthetix-all.streamlit.app/arbitrum?page=Perps",
+        "url": "https://synthetix-all.streamlit.app/arbitrum?page=LP",
     },
     {
         "title": "Ethereum LP",
         "text": "Synthetix V3 liquidity pools on Ethereum",
-        "url": "https://synthetix-all.streamlit.app/optimism?page=Perps%20V2",
+        "url": "https://synthetix-all.streamlit.app/ethereum?page=LP",
     },
 ]
 

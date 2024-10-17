@@ -133,7 +133,6 @@ def chart_many_bars(
     color: Optional[str] = None,
     x_format: str = "#",
     y_format: str = "$",
-    help_text: Optional[str] = None,
 ):
     """Create a bar chart with multiple series."""
     fig = px.bar(
@@ -151,7 +150,7 @@ def chart_many_bars(
     fig.update_layout(
         font=dict(family=FONT_FAMILY),
     )
-    return update_layout(fig, help_text=help_text)
+    return fig
 
 
 def chart_many_lines(
@@ -162,7 +161,6 @@ def chart_many_lines(
     color: Optional[str] = None,
     x_format: str = "#",
     y_format: str = "$",
-    help_text: Optional[str] = None,
 ):
     """Create a line chart with multiple series."""
     fig = px.line(
@@ -175,7 +173,7 @@ def chart_many_lines(
         template=PLOTLY_TEMPLATE,
     )
     fig = set_axes(fig, x_format, y_format)
-    return update_layout(fig, help_text=help_text)
+    return fig
 
 
 def chart_bars(

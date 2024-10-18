@@ -10,7 +10,7 @@ def sidebar_logo():
     HEIGHT = 28
     logo = f"url(data:image/png;base64,{base64.b64encode(Path(LOGO_URL).read_bytes()).decode()})"
 
-    st.markdown(
+    st.html(
         f"""
         <style>
             [data-testid="stSidebarHeader"] {{
@@ -21,7 +21,6 @@ def sidebar_logo():
             }}
         </style>
         """,
-        unsafe_allow_html=True,
     )
 
 
@@ -61,7 +60,7 @@ def sidebar_icon():
         
     </style>
     """
-    st.markdown(custom_css, unsafe_allow_html=True)
+    st.html(custom_css)
 
 
 def display_cards(card_configs, width=3):

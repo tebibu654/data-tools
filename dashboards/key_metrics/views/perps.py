@@ -35,9 +35,66 @@ def fetch_data(date_range, chain):
         for current_chain in chains_to_fetch
         if current_chain in SUPPORTED_CHAINS_PERPS
     ]
+    perps_account_activity_daily = [
+        st.session_state.api.get_perps_account_activity(
+            start_date=start_date.date(),
+            end_date=end_date.date(),
+            chain=current_chain,
+            resolution="day",
+        )
+        for current_chain in chains_to_fetch
+        if current_chain in SUPPORTED_CHAINS_PERPS
+    ]
+    perps_account_activity_monthly = [
+        st.session_state.api.get_perps_account_activity(
+            start_date=start_date.date(),
+            end_date=end_date.date(),
+            chain=current_chain,
+            resolution="month",
+        )
+        for current_chain in chains_to_fetch
+        if current_chain in SUPPORTED_CHAINS_PERPS
+    ]
 
     return {
         "perps_stats": pd.concat(perps_stats, ignore_index=True),
+        "perps_stats_totals": (
+            pd.concat(perps_stats, ignore_index=True)
+            .groupby("ts")
+            .agg(
+                volume=("volume", "sum"),
+                exchange_fees=("exchange_fees", "sum"),
+            )
+            .reset_index()
+            if perps_stats
+            else pd.DataFrame()
+        ),
+        "perps_account_activity_daily": (
+            pd.concat(perps_account_activity_daily, ignore_index=True)
+            if perps_account_activity_daily
+            else pd.DataFrame()
+        ),
+        "perps_account_activity_daily_totals": (
+            pd.concat(perps_account_activity_daily, ignore_index=True)
+            .groupby("date")
+            .agg(nof_accounts=("nof_accounts", "sum"))
+            .reset_index()
+            if perps_account_activity_daily
+            else pd.DataFrame()
+        ),
+        "perps_account_activity_monthly": (
+            pd.concat(perps_account_activity_monthly, ignore_index=True)
+            if perps_account_activity_monthly
+            else pd.DataFrame()
+        ),
+        "perps_account_activity_monthly_totals": (
+            pd.concat(perps_account_activity_monthly, ignore_index=True)
+            .groupby("date")
+            .agg(nof_accounts=("nof_accounts", "sum"))
+            .reset_index()
+            if perps_account_activity_monthly
+            else pd.DataFrame()
+        ),
     }
 
 
@@ -65,19 +122,63 @@ chart_perps_volume = chart_bars(
     data["perps_stats"],
     x_col="ts",
     y_cols="volume",
-    title="Volume",
+    title="Perps Volume",
     color="chain",
+    hover_template="%{fullData.name}: %{y:$.3s}<extra></extra>",
+    custom_data={
+        "df": data["perps_stats_totals"][["ts", "volume"]],
+        "name": "Total",
+        "hover_template": "<b>%{fullData.name}: %{y:$.3s}</b><extra></extra>",
+    },
 )
 chart_perps_exchange_fees = chart_bars(
     data["perps_stats"],
     x_col="ts",
     y_cols="exchange_fees",
-    title="Exchange Fees",
+    title="Perps Fees",
     color="chain",
+    hover_template="%{fullData.name}: %{y:$.3s}<extra></extra>",
+    custom_data={
+        "df": data["perps_stats_totals"][["ts", "exchange_fees"]],
+        "name": "Total",
+        "hover_template": "<b>%{fullData.name}: %{y:$.3s}</b><extra></extra>",
+    },
+)
+chart_perps_account_activity_daily = chart_bars(
+    data["perps_account_activity_daily"],
+    x_col="date",
+    y_cols="nof_accounts",
+    title="Active Accounts (Daily)",
+    color="chain",
+    y_format="#",
+    help_text="Number of daily unique accounts that have at least one settled order",
+    hover_template="%{fullData.name}: %{y:,.0f}<extra></extra>",
+    custom_data={
+        "df": data["perps_account_activity_daily_totals"][["date", "nof_accounts"]],
+        "name": "Total",
+        "hover_template": "<b>%{fullData.name}: %{y:,.0f}</b><extra></extra>",
+    },
+)
+chart_perps_account_activity_monthly = chart_bars(
+    data["perps_account_activity_monthly"],
+    x_col="date",
+    y_cols="nof_accounts",
+    title="Active Accounts (Monthly)",
+    color="chain",
+    y_format="#",
+    help_text="Number of monthly unique accounts that have at least one settled order",
+    hover_template="%{fullData.name}: %{y:,.0f}<extra></extra>",
+    custom_data={
+        "df": data["perps_account_activity_monthly_totals"][["date", "nof_accounts"]],
+        "name": "Total",
+        "hover_template": "<b>%{fullData.name}: %{y:,.0f}</b><extra></extra>",
+    },
 )
 
 chart_col1, chart_col2 = st.columns(2)
 with chart_col1:
     st.plotly_chart(chart_perps_volume, use_container_width=True)
+    st.plotly_chart(chart_perps_account_activity_daily, use_container_width=True)
 with chart_col2:
     st.plotly_chart(chart_perps_exchange_fees, use_container_width=True)
+    st.plotly_chart(chart_perps_account_activity_monthly, use_container_width=True)

@@ -44,6 +44,7 @@ class SynthetixAPI:
     SUPPORTED_CHAINS = {
         "arbitrum_mainnet": "Arbitrum",
         "base_mainnet": "Base",
+        "optimism_mainnet": "Optimism (V2)",
         "eth_mainnet": "Ethereum",
     }
 
@@ -205,6 +206,73 @@ class SynthetixAPI:
         with self._get_connection() as conn:
             return pd.read_sql_query(query, conn)
 
+    def get_core_account_activity(
+        self,
+        start_date: datetime,
+        end_date: datetime,
+        chain: str = "arbitrum_mainnet",
+        resolution: str = "daily",
+    ) -> pd.DataFrame:
+        """
+        Get core account activity by action (Delegate, Withdraw, Claim).
+
+        Args:
+            start_date (datetime): Start date for the query
+            end_date (datetime): End date for the query
+            chain (str): Chain to query (e.g., 'arbitrum_mainnet')
+            resolution (str): Data resolution ('daily' or 'monthly')
+
+        Returns:
+            pandas.DataFrame: Account activity with columns:
+                'date', 'chain', 'account_action', 'nof_accounts'
+        """
+        chain_label = self.SUPPORTED_CHAINS[chain]
+        trunc_resolution = "day" if resolution == "daily" else "month"
+        query = f"""
+        SELECT
+            DATE_TRUNC('{trunc_resolution}', block_timestamp) AS date,
+            '{chain_label}' AS chain,
+            account_action as action,
+            COUNT(DISTINCT account_id) AS nof_accounts
+        FROM {self.environment}_{chain}.fct_core_account_activity_{chain}
+        WHERE block_timestamp >= '{start_date}' and block_timestamp <= '{end_date}'
+        GROUP BY 1, 2, 3
+        ORDER BY 1
+        """
+        with self.get_connection() as conn:
+            return pd.read_sql_query(query, conn)
+
+    def get_core_nof_stakers(
+        self,
+        start_date: datetime,
+        end_date: datetime,
+        chain: str = "arbitrum_mainnet",
+    ) -> pd.DataFrame:
+        """
+        Get core number of stakers.
+
+        Args:
+            start_date (datetime): Start date for the query
+            end_date (datetime): End date for the query
+            chain (str): Chain to query (e.g., 'arbitrum_mainnet')
+
+        Returns:
+            pandas.DataFrame: NoF Stakers with columns:
+                'date', 'chain', 'nof_stakers_daily'
+        """
+        chain_label = self.SUPPORTED_CHAINS[chain]
+        query = f"""
+        SELECT
+            date,
+            '{chain_label}' AS chain,
+            nof_stakers_daily
+        FROM {self.environment}_{chain}.fct_core_active_stakers_{chain}
+        WHERE date >= '{start_date}' and date <= '{end_date}'
+        ORDER BY date
+        """
+        with self.get_connection() as conn:
+            return pd.read_sql_query(query, conn)
+
     def get_perps_stats(
         self,
         start_date: datetime,
@@ -237,6 +305,41 @@ class SynthetixAPI:
         ORDER BY ts
         """
         with self._get_connection() as conn:
+            return pd.read_sql_query(query, conn)
+
+    def get_perps_open_interest(
+        self,
+        start_date: datetime,
+        end_date: datetime,
+        chain: str = "arbitrum_mainnet",
+        resolution: str = "daily",
+    ) -> pd.DataFrame:
+        """
+        Get perps stats by chain.
+
+        Args:
+            start_date (datetime): Start date for the query
+            end_date (datetime): End date for the query
+            chain (str): Chain to query (e.g., 'arbitrum_mainnet')
+
+        Returns:
+            pandas.DataFrame: Perps stats with columns:
+                'ts', 'chain', 'total_oi_usd'
+        """
+        chain_label = self.SUPPORTED_CHAINS[chain]
+        trunc_resolution = "day" if resolution == "daily" else "hour"
+        query = f"""
+        SELECT
+            DATE_TRUNC('{trunc_resolution}', ts) AS ts,
+            '{chain_label}' AS chain,
+            MAX(total_oi_usd) as total_oi_usd
+        FROM {self.environment}_{chain}.fct_perp_market_history_{chain}
+        WHERE
+            ts >= '{start_date}' and ts <= '{end_date}'
+        GROUP BY 1, 2
+        ORDER BY 2, 1
+        """
+        with self.get_connection() as conn:
             return pd.read_sql_query(query, conn)
 
     def get_perps_markets_history(
@@ -274,6 +377,41 @@ class SynthetixAPI:
         with self._get_connection() as conn:
             return pd.read_sql_query(query, conn)
 
+    def get_perps_account_activity(
+        self,
+        start_date: datetime,
+        end_date: datetime,
+        chain: str = "arbitrum_mainnet",
+        resolution: str = "day",
+    ) -> pd.DataFrame:
+        """
+        Get perps account activity. Active accounts are those that have
+        settled at least one order in a day.
+
+        Args:
+            start_date (datetime): Start date for the query
+            end_date (datetime): End date for the query
+            chain (str): Chain to query (e.g., 'arbitrum_mainnet')
+            resolution (str): Data resolution ('day' or 'month')
+
+        Returns:
+            pandas.DataFrame: Perps account activity with columns:
+                'date', 'chain', 'nof_accounts'
+        """
+        chain_label = self.SUPPORTED_CHAINS[chain]
+        query = f"""
+        SELECT
+            DATE_TRUNC('{resolution}', ts) AS date,
+            '{chain_label}' AS chain,
+            COUNT(DISTINCT account_id) AS nof_accounts
+        FROM {self.environment}_{chain}.fct_perp_trades_{chain}
+        WHERE ts >= '{start_date}' and ts <= '{end_date}'
+        GROUP BY 1, 2
+        ORDER BY 1
+        """
+        with self.get_connection() as conn:
+            return pd.read_sql_query(query, conn)
+
     def get_snx_token_buyback(
         self,
         start_date: datetime,
@@ -292,9 +430,11 @@ class SynthetixAPI:
             pandas.DataFrame: SNX token buyback data with columns:
                 'ts', 'snx_amount', 'usd_amount'
         """
+        chain_label = self.SUPPORTED_CHAINS[chain]
         query = f"""
         SELECT
             ts,
+            '{chain_label}' AS chain,
             snx_amount,
             usd_amount
         FROM {self.environment}_{chain}.fct_buyback_daily_{chain}
@@ -303,4 +443,72 @@ class SynthetixAPI:
         ORDER BY ts
         """
         with self._get_connection() as conn:
+            return pd.read_sql_query(query, conn)
+
+    # V2 queries
+    def get_perps_v2_stats(
+        self,
+        start_date: datetime,
+        end_date: datetime,
+        chain: str = "optimism_mainnet",
+        resolution: str = "daily",
+    ) -> pd.DataFrame:
+        """
+        Get perps V2 stats.
+
+        Args:
+            start_date (datetime): Start date for the query
+            end_date (datetime): End date for the query
+            chain (str): Chain to query (e.g., 'arbitrum_mainnet')
+
+        Returns:
+            pandas.DataFrame: Perps stats with columns:
+                'ts', 'chain', 'volume', 'exchange_fees'
+        """
+        chain_label = self.SUPPORTED_CHAINS[chain]
+        query = f"""
+        SELECT
+            ts,
+            '{chain_label}' AS chain,
+            volume,
+            exchange_fees + liquidation_fees as exchange_fees
+        FROM {self.environment}_{chain}.fct_v2_stats_{resolution}_{chain}
+        WHERE
+            ts >= '{start_date}' and ts <= '{end_date}'
+        ORDER BY ts
+        """
+        with self.get_connection() as conn:
+            return pd.read_sql_query(query, conn)
+
+    def get_perps_v2_open_interest(
+        self,
+        start_date: datetime,
+        end_date: datetime,
+        chain: str = "optimism_mainnet",
+        resolution: str = "daily",
+    ) -> pd.DataFrame:
+        """
+        Get perps V2 open interest.
+
+        Args:
+            start_date (datetime): Start date for the query
+            end_date (datetime): End date for the query
+            chain (str): Chain to query (e.g., 'optimism_mainnet')
+
+        Returns:
+            pandas.DataFrame: Open interest data with columns:
+                'ts', 'chain', 'total_oi_usd'
+        """
+        chain_label = self.SUPPORTED_CHAINS[chain]
+        query = f"""
+        SELECT
+            ts,
+            '{chain_label}' AS chain,
+            total_oi_usd
+        FROM {self.environment}_{chain}.fct_v2_stats_{resolution}_{chain}
+        WHERE
+            ts >= '{start_date}' and ts <= '{end_date}'
+        ORDER BY ts
+        """
+        with self.get_connection() as conn:
             return pd.read_sql_query(query, conn)

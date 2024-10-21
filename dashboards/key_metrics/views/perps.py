@@ -97,7 +97,11 @@ chart_perps_volume = chart_bars(
     y_cols="volume",
     title="Volume",
     color_by="chain",
-    custom_agg=dict(field="volume", name="Total", agg="sum"),
+    custom_agg=(
+        dict(field="volume", name="Total", agg="sum")
+        if st.session_state.chain == "all"
+        else None
+    ),
 )
 chart_perps_exchange_fees = chart_bars(
     data["perps_stats"],
@@ -105,7 +109,11 @@ chart_perps_exchange_fees = chart_bars(
     y_cols="exchange_fees",
     title="Exchange Fees",
     color_by="chain",
-    custom_agg=dict(field="exchange_fees", name="Total", agg="sum"),
+    custom_agg=(
+        dict(field="exchange_fees", name="Total", agg="sum")
+        if st.session_state.chain == "all"
+        else None
+    ),
 )
 chart_perps_account_activity_daily = chart_bars(
     data["perps_account_activity_daily"],
@@ -115,7 +123,11 @@ chart_perps_account_activity_daily = chart_bars(
     color_by="chain",
     y_format="#",
     help_text="Number of daily unique accounts that have at least one settled order",
-    custom_agg=dict(field="nof_accounts", name="Total", agg="sum"),
+    custom_agg=(
+        dict(field="nof_accounts", name="Total", agg="sum")
+        if st.session_state.chain == "all"
+        else None
+    ),
 )
 chart_perps_account_activity_monthly = chart_bars(
     data["perps_account_activity_monthly"],
@@ -125,7 +137,11 @@ chart_perps_account_activity_monthly = chart_bars(
     color_by="chain",
     y_format="#",
     help_text="Number of monthly unique accounts that have at least one settled order",
-    custom_agg=dict(field="nof_accounts", name="Total", agg="sum"),
+    custom_agg=(
+        dict(field="nof_accounts", name="Total", agg="sum")
+        if st.session_state.chain == "all"
+        else None
+    ),
 )
 
 chart_col1, chart_col2 = st.columns(2)

@@ -105,7 +105,6 @@ def make_charts(data, resolution):
             y_cols="collateral_value",
             title="TVL",
             color_by="collateral_type",
-            stackgroup="",
             custom_agg=dict(field="collateral_value", name="Total", agg="sum"),
         ),
         "debt": chart_lines(
@@ -114,7 +113,6 @@ def make_charts(data, resolution):
             y_cols="debt",
             title="Debt",
             color_by="collateral_type",
-            stackgroup="",
         ),
         "hourly_issuance": chart_bars(
             df=data["apr"],
@@ -129,7 +127,6 @@ def make_charts(data, resolution):
             y_cols="cumulative_issuance",
             title="Issuance",
             color_by="collateral_type",
-            stackgroup="",
         ),
         "pnl": chart_lines(
             df=data["apr"],
@@ -137,7 +134,6 @@ def make_charts(data, resolution):
             y_cols="cumulative_pnl",
             title="Pnl",
             color_by="collateral_type",
-            stackgroup="",
         ),
         "hourly_pnl": chart_bars(
             df=data["apr"],
@@ -167,7 +163,6 @@ def make_charts(data, resolution):
             title=f"APR - {resolution} average",
             y_format="%",
             color_by="collateral_type",
-            stackgroup="",
         ),
         "apr_token": chart_lines(
             df=data["apr_token"],
@@ -176,7 +171,6 @@ def make_charts(data, resolution):
             title=f"Reward APR by Token - {resolution} average",
             y_format="%",
             color_by="token_pair",
-            stackgroup="",
         ),
     }
 

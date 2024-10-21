@@ -155,7 +155,7 @@ def make_charts(data):
             color_by="label",
             custom_agg=dict(field="collateral_value", name="Total", agg="sum"),
         ),
-        "pnl_collateral": chart_area(
+        "pnl_collateral": chart_lines(
             data["collateral"],
             x_col="ts",
             y_cols="cumulative_pnl",
@@ -171,7 +171,7 @@ def make_charts(data):
             color_by="label",
             custom_agg=dict(field="collateral_value", name="Total", agg="sum"),
         ),
-        "pnl_chain": chart_area(
+        "pnl_chain": chart_lines(
             data["chain"],
             x_col="ts",
             y_cols="cumulative_pnl",
@@ -186,7 +186,6 @@ def make_charts(data):
             title=f"APR - {st.session_state.resolution} average",
             y_format="%",
             color_by="label",
-            stackgroup="",
             sort_ascending=True,
         ),
     }

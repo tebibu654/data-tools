@@ -105,32 +105,32 @@ def make_charts(data, asset):
         ),
         "volume": chart_bars(
             df_stats,
-            "ts",
+            x_col="ts",
             y_cols="volume",
             title="Volume",
         ),
         "exchange_fees": chart_bars(
             df_stats,
-            "ts",
+            x_col="ts",
             y_cols="exchange_fees",
             title="Exchange Fees",
         ),
         "skew": chart_lines(
             df_market,
-            "ts",
+            x_col="ts",
             y_cols="skew",
             title="Market Skew",
             y_format="#",
         ),
         "oi": chart_lines(
             df_market,
-            "ts",
+            x_col="ts",
             y_cols="market_oi_usd",
             title="Market Open Interest",
         ),
         "oi_pct": chart_oi(
             df_market,
-            "ts",
+            x_col="ts",
             title="Open Interest: Long vs Short",
         ),
     }

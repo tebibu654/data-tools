@@ -141,35 +141,39 @@ def make_charts(data):
         dict: A dictionary containing Plotly chart objects.
     """
     return {
-        "volume": chart_many_bars(
+        "volume": chart_bars(
             data["market"],
             "ts",
-            ["volume"],
+            "volume",
             "Volume",
             "market_symbol",
+            unified_hover=False,
         ),
-        "exchange_fees": chart_many_bars(
+        "exchange_fees": chart_bars(
             data["market"],
             "ts",
-            ["exchange_fees"],
+            "exchange_fees",
             "Exchange Fees",
             "market_symbol",
+            unified_hover=False,
         ),
-        "trades": chart_many_bars(
+        "trades": chart_bars(
             data["market"],
             "ts",
-            ["trades"],
+            "trades",
             "Trades",
             "market_symbol",
+            unified_hover=False,
             y_format="#",
         ),
-        "position_liquidations": chart_many_bars(
+        "position_liquidations": chart_bars(
             data["market"],
             "ts",
-            ["liquidations"],
+            "liquidations",
             "Position Liquidations",
             "market_symbol",
             y_format="#",
+            unified_hover=False,
         ),
         "account_liquidations": chart_bars(
             data["stats"],
@@ -193,10 +197,10 @@ def make_charts(data):
         ),
         "current_skew": chart_many_bars(
             data["current_skew"],
-            ["skew_usd"],
-            "side",
-            "Current Market Skew",
-            "market_symbol",
+            x_col="skew_usd",
+            y_cols="side",
+            title="Current Market Skew",
+            color="market_symbol",
             x_format="$",
             y_format="#",
         ),

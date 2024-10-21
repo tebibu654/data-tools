@@ -154,8 +154,6 @@ if st.session_state.chain in [*SUPPORTED_CHAINS_CORE, "all"]:
         title="APR by Collateral (7d average)",
         color_by="label",
         y_format="%",
-        stackgroup="",
-        sort_ascending=True,
     )
 
     st.plotly_chart(chart_core_tvl_by_chain, use_container_width=True)

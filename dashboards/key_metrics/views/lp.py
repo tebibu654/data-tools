@@ -99,7 +99,6 @@ chart_core_apr_by_collateral = chart_lines(
     title=f"APR ({APR_RESOLUTION} average)",
     color_by="label",
     y_format="%",
-    stackgroup="",
     sort_ascending=True,
 )
 chart_core_apr_rewards_by_collateral = chart_lines(
@@ -110,7 +109,6 @@ chart_core_apr_rewards_by_collateral = chart_lines(
     color_by="label",
     y_format="%",
     sort_ascending=True,
-    stackgroup="",
 )
 
 st.plotly_chart(chart_core_tvl_by_collateral, use_container_width=True)

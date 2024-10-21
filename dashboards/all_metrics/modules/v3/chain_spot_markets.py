@@ -83,9 +83,9 @@ def make_charts(data):
         "supply": chart_lines(
             df=data["synth_supply"],
             x_col="ts",
-            y_cols=["supply"],
+            y_cols="supply",
             title="Synth Supply",
-            color="synth_market_id",
+            color_by="synth_market_id",
         ),
     }
 

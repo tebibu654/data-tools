@@ -1,4 +1,5 @@
 import streamlit as st
+from dashboards.utils.display import sidebar_logo, sidebar_icon
 from api.internal_api import SynthetixAPI, get_db_config
 
 st.set_page_config(
@@ -6,6 +7,8 @@ st.set_page_config(
     page_icon=f"dashboards/static/favicon.ico",
     layout="wide",
 )
+sidebar_logo()
+sidebar_icon()
 
 hide_footer = """
     <style>
@@ -30,11 +33,12 @@ ethereum = st.Page("views/ethereum.py", title="Ethereum")
 base = st.Page("views/base.py", title="Base")
 arbitrum = st.Page("views/arbitrum.py", title="Arbitrum")
 optimism = st.Page("views/optimism.py", title="Optimism")
+links = st.Page("../key_metrics/views/links.py", title="Links")
 
 
 # navigation
 pages = {
-    "": [all_chains, ethereum, base, arbitrum, optimism],
+    "": [all_chains, ethereum, base, arbitrum, optimism, links],
 }
 nav = st.navigation(pages)
 nav.run()

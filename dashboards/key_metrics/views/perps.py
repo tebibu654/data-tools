@@ -95,7 +95,7 @@ chart_perps_volume = chart_bars(
     data["perps_stats"],
     x_col="ts",
     y_cols="volume",
-    title="Volume",
+    title="Perps Volume",
     color_by="chain",
     custom_agg=(
         dict(field="volume", name="Total", agg="sum")
@@ -107,7 +107,7 @@ chart_perps_exchange_fees = chart_bars(
     data["perps_stats"],
     x_col="ts",
     y_cols="exchange_fees",
-    title="Exchange Fees",
+    title="Perps Fees",
     color_by="chain",
     custom_agg=(
         dict(field="exchange_fees", name="Total", agg="sum")

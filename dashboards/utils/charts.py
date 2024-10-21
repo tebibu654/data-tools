@@ -326,6 +326,38 @@ def sort_traces(traces, sort_ascending):
     return traces
 
 
+def add_aggregation(traces, custom_agg, df, x_col, y_format, human_format):
+    percentage = True if y_format == "%" else False
+    no_decimals = False if y_format == "$" else True
+    if custom_agg is not None:
+        field = custom_agg.get("field")
+        name = custom_agg.get("name", "Total")
+        agg = custom_agg.get("agg", "sum")
+        y = df.groupby(x_col)[field].agg(agg).reset_index()
+        custom_data = (
+            y[field].apply(
+                format_func,
+                args=(no_decimals, percentage),
+            )
+            if human_format
+            else y[field]
+        )
+        hover_template = f"<extra></extra><b>%{{fullData.name}}: {HOVER_PREFIX_MAP[y_format]}%{{customdata}}</b>"
+        trace = _create_trace(
+            x=y[x_col],
+            y=y[field],
+            name=name,
+            trace_type="line",
+            linewidth=0,
+            custom_data=custom_data,
+            hover_template=hover_template,
+            show_legend=False,
+            legendrank=-1000,
+        )
+        traces.append(trace)
+    return traces
+
+
 def _create_traces_from_list(
     df,
     x_col: str,
@@ -424,39 +456,6 @@ def _create_traces_from_string(
     return traces
 
 
-def add_aggregation(traces, custom_agg, df, x_col, y_format, human_format):
-    percentage = True if y_format == "%" else False
-    no_decimals = False if y_format == "$" else True
-    if custom_agg is not None:
-        field = custom_agg.get("field")
-        name = custom_agg.get("name", "Total")
-        agg = custom_agg.get("agg", "sum")
-        y = df.groupby(x_col)[field].agg(agg).reset_index()
-        custom_data = (
-            y[field].apply(
-                format_func,
-                args=(no_decimals, percentage),
-            )
-            if human_format
-            else y[field]
-        )
-        hover_template = f"<extra></extra><b>%{{fullData.name}}: {HOVER_PREFIX_MAP[y_format]}%{{customdata}}</b>"
-        trace = _create_trace(
-            x=y[x_col],
-            y=y[field],
-            name=name,
-            trace_type="line",
-            linewidth=0,
-            custom_data=custom_data,
-            hover_template=hover_template,
-            show_legend=False,
-            legendrank=-1000,
-        )
-        traces.append(trace)
-
-    return traces
-
-
 def _create_trace(
     x: pd.Series,
     y: pd.Series,
@@ -481,7 +480,7 @@ def _create_trace(
             hovertemplate=hover_template,
             showlegend=show_legend,
         )
-    elif trace_type == "line" or trace_type == "area":
+    elif trace_type in ["line", "area"]:
         return go.Scatter(
             x=x,
             y=y,

@@ -20,6 +20,7 @@ SEQUENTIAL_COLORS = [
     "#004B5C",
 ]
 CATEGORICAL_COLORS = ["#00D1FF", "#EB46FF", "#6B59FF", "#4FD1C5", "#1F68AC", "#FDE8FF"]
+OI_COLORS = ["red", "green"]
 FONT_FAMILY = "sans-serif"
 PLOTLY_TEMPLATE = "plotly_dark"
 DEFAULT_LINE_COLOR = "white"
@@ -27,6 +28,225 @@ DEFAULT_LINE_WIDTH = 0
 HELP_TEXT_BGCOLOR = "#333333"
 HELP_TEXT_FONT_SIZE = 14
 HELP_TEXT_FONT_COLOR = "white"
+
+
+def chart_bars(
+    df,
+    x_col: str,
+    y_cols: Union[str, List[str]],
+    title: str,
+    color_by: Optional[str] = None,
+    x_format: str = "#",
+    y_format: str = "$",
+    column: bool = False,
+    barmode: str = "relative",
+    help_text: Optional[str] = None,
+    human_format: bool = True,
+    custom_agg: Optional[Dict[str, str]] = None,
+    sort_by_last_value: bool = True,
+    sort_ascending: bool = False,
+    unified_hover: bool = True,
+):
+    """Create a bar chart."""
+    if isinstance(y_cols, str):
+        traces = _create_traces_from_string(
+            df,
+            x_col,
+            y_cols,
+            "bar",
+            color_by,
+            human_format,
+            y_format,
+        )
+    else:
+        traces = _create_traces_from_list(
+            df, x_col, y_cols, "bar", human_format, y_format
+        )
+    if sort_by_last_value:
+        traces = sort_traces(traces, sort_ascending)
+    if custom_agg is not None:
+        traces = add_aggregation(traces, custom_agg, df, x_col, y_format, human_format)
+    fig = go.Figure(
+        traces,
+        layout=dict(
+            title=title,
+            template=PLOTLY_TEMPLATE,
+            font=dict(family=FONT_FAMILY),
+            barmode=barmode,
+            legend_traceorder="reversed",
+        ),
+    )
+    fig = set_axes(fig, x_format, y_format)
+    if help_text is not None:
+        fig = add_help_text(fig, help_text)
+    if unified_hover:
+        fig = clear_axes(fig)
+        fig = set_hovermode_unified(fig, orientation="h" if column else "v")
+    return fig
+
+
+def chart_many_bars(
+    df,
+    x_col: str,
+    y_cols: List[str],
+    title: str,
+    color: Optional[str] = None,
+    x_format: str = "#",
+    y_format: str = "$",
+):
+    """Create a bar chart with multiple series."""
+    fig = px.bar(
+        df,
+        x=x_col,
+        y=y_cols,
+        title=title,
+        color=color,
+        color_discrete_sequence=CATEGORICAL_COLORS,
+        template=PLOTLY_TEMPLATE,
+    )
+    fig = set_axes(fig, x_format, y_format)
+    fig.update_xaxes(title_text="", automargin=True)
+    fig.update_yaxes(title_text="")
+    fig.update_layout(
+        font=dict(family=FONT_FAMILY),
+    )
+    return fig
+
+
+def chart_area(
+    df,
+    x_col: str,
+    y_cols: List[str],
+    title: str,
+    color_by: Optional[str] = None,
+    x_format: str = "#",
+    y_format: str = "$",
+    column: bool = False,
+    sort_by_last_value: bool = True,
+    sort_ascending: bool = False,
+    help_text: Optional[str] = None,
+    human_format: bool = True,
+    custom_agg: Optional[Dict[str, str]] = None,
+    unified_hover: bool = True,
+):
+    """Create an area chart."""
+    if isinstance(y_cols, str):
+        traces = _create_traces_from_string(
+            df=df,
+            x_col=x_col,
+            y_cols=y_cols,
+            trace_type="area",
+            color_by=color_by,
+            human_format=human_format,
+            y_format=y_format,
+            stackgroup="one",
+        )
+    else:
+        traces = _create_traces_from_list(
+            df=df,
+            x_col=x_col,
+            y_cols=y_cols,
+            trace_type="area",
+            human_format=human_format,
+            y_format=y_format,
+            stackgroup="one",
+        )
+    if sort_by_last_value:
+        traces = sort_traces(traces, sort_ascending)
+    if custom_agg is not None:
+        traces = add_aggregation(traces, custom_agg, df, x_col, y_format, human_format)
+    fig = go.Figure(
+        traces,
+        layout=dict(
+            title=title,
+            template=PLOTLY_TEMPLATE,
+            font=dict(family=FONT_FAMILY),
+        ),
+    )
+    fig = set_axes(fig, x_format, y_format)
+    if help_text is not None:
+        fig = add_help_text(fig, help_text)
+    if unified_hover:
+        fig = clear_axes(fig)
+        fig = set_hovermode_unified(fig, orientation="h" if column else "v")
+    return fig
+
+
+def chart_lines(
+    df,
+    x_col: str,
+    y_cols: Union[str, List[str]],
+    title: str,
+    color_by: Optional[str] = None,
+    smooth: bool = False,
+    x_format: str = "#",
+    y_format: str = "$",
+    help_text: Optional[str] = None,
+    sort_by_last_value: bool = True,
+    sort_ascending: bool = False,
+    human_format: bool = True,
+    custom_agg: Optional[Dict[str, str]] = None,
+    unified_hover: bool = True,
+):
+    """Create a line chart."""
+    if isinstance(y_cols, str):
+        traces = _create_traces_from_string(
+            df,
+            x_col,
+            y_cols,
+            trace_type="line",
+            color_by=color_by,
+            human_format=human_format,
+            y_format=y_format,
+            stackgroup="",
+        )
+    else:
+        traces = _create_traces_from_list(
+            df,
+            x_col,
+            y_cols,
+            trace_type="line",
+            human_format=human_format,
+            y_format=y_format,
+            stackgroup="",
+        )
+    if sort_by_last_value:
+        traces = sort_traces(traces, sort_ascending)
+    if custom_agg is not None:
+        traces = add_aggregation(traces, custom_agg, df, x_col, y_format, human_format)
+    fig = go.Figure(traces)
+    fig.update_layout(
+        title=title,
+        template=PLOTLY_TEMPLATE,
+        font=dict(family=FONT_FAMILY),
+    )
+    if help_text is not None:
+        fig = add_help_text(fig, help_text)
+    fig.update_traces(line_shape=None if smooth else "hv")
+    fig = set_axes(fig, x_format, y_format)
+    if not sort_ascending:
+        fig.update_layout(legend_traceorder="reversed")
+    if unified_hover:
+        fig = clear_axes(fig)
+        fig = set_hovermode_unified(fig, orientation="v")
+    return fig
+
+
+def chart_oi(df, x_col: str, title: str, help_text: Optional[str] = None):
+    """Create an Open Interest chart."""
+    fig = px.area(
+        df,
+        x=x_col,
+        y=["short_oi_pct", "long_oi_pct"],
+        line_shape="hv",
+        color_discrete_sequence=["red", "green"],
+        title=title,
+    )
+    fig.update_yaxes(tickformat=".0%")
+    fig = clear_axes(fig)
+    fig = add_help_text(fig, help_text)
+    fig = set_hovermode_unified(fig)
+    return fig
 
 
 def set_axes(fig, x_format: str, y_format: str):
@@ -45,44 +265,15 @@ def set_axes(fig, x_format: str, y_format: str):
     return fig
 
 
-def update_layout(
-    fig,
-    orientation: str = "v",
-    help_text: Optional[str] = None,
-):
-    """Apply common layout updates to the figure.
-
-    Args:
-        fig: The plotly figure to update.
-        orientation: The orientation of the chart ("v" for vertical, "h" for horizontal).
-        help_text: Optional text to display in the top-right corner of the chart.
-        custom_data: Optional data to add to the chart.
-        hover_template: Optional template for the chart's hover tooltip.
-    """
+def clear_axes(fig):
+    """Clear axes from the figure."""
     fig.update_xaxes(title_text="", automargin=True)
     fig.update_yaxes(title_text="")
-    if help_text is not None:
-        fig.update_layout(
-            annotations=[
-                dict(
-                    x=1,
-                    y=1.25,
-                    xref="paper",
-                    yref="paper",
-                    text="❔",
-                    showarrow=False,
-                    font=dict(size=20),
-                    xanchor="right",
-                    yanchor="top",
-                    hovertext=help_text,
-                    hoverlabel=dict(
-                        bgcolor=HELP_TEXT_BGCOLOR,
-                        font_size=HELP_TEXT_FONT_SIZE,
-                        font_color=HELP_TEXT_FONT_COLOR,
-                    ),
-                )
-            ]
-        )
+    return fig
+
+
+def set_hovermode_unified(fig, orientation: str = "v"):
+    """Set the hover mode of the figure."""
     fig.update_layout(
         hovermode=f"{'y' if orientation == 'h' else 'x'} unified",
         legend=dict(
@@ -98,307 +289,145 @@ def update_layout(
     return fig
 
 
-def chart_many_bars(
-    df,
-    x_col: str,
-    y_cols: List[str],
-    title: str,
-    color: Optional[str] = None,
-    x_format: str = "#",
-    y_format: str = "$",
-):
-    """Create a bar chart with multiple series."""
-    fig = px.bar(
-        df,
-        x=x_col,
-        y=y_cols,
-        color=color,
+def add_help_text(fig, help_text: str):
+    """Add help text to the figure."""
+    fig.update_layout(
+        annotations=[
+            dict(
+                x=1,
+                y=1.25,
+                xref="paper",
+                yref="paper",
+                text="❔",
+                showarrow=False,
+                font=dict(size=20),
+                xanchor="right",
+                yanchor="top",
+                hovertext=help_text,
+                hoverlabel=dict(
+                    bgcolor=HELP_TEXT_BGCOLOR,
+                    font_size=HELP_TEXT_FONT_SIZE,
+                    font_color=HELP_TEXT_FONT_COLOR,
+                ),
+            )
+        ]
     )
+    return fig
 
-    traces = []
-    for trace in fig.data:
-        if title == "Volume":
-            if trace["y"].sum() < 1:
-                continue
-        traces.append(trace)
-    traces.sort(key=lambda trace: trace["y"][-1], reverse=True)
+
+def sort_traces(traces, sort_ascending):
+    traces.sort(
+        key=lambda trace: trace["y"][-1] if len(trace["y"]) > 0 else 0,
+        reverse=not sort_ascending,
+    )
     for rank, trace in enumerate(traces):
         trace["legendrank"] = -rank
-        trace["marker"]["color"] = CATEGORICAL_COLORS[rank % len(CATEGORICAL_COLORS)]
-
-    fig = go.Figure(traces)
-    fig = set_axes(fig, x_format, y_format)
-    fig.update_xaxes(title_text="", automargin=True)
-    fig.update_yaxes(title_text="")
-    fig.update_layout(
-        title=title,
-        font=dict(family=FONT_FAMILY),
-        template=PLOTLY_TEMPLATE,
-        barmode="stack",
-        legend_traceorder="reversed",
-    )
-    fig.update_traces(
-        hovertemplate="<extra></extra>%{x}<br><br>Market Symbol: %{fullData.name}<br>Value: %{y:.3s}"
-    )
-    return fig
+    return traces
 
 
-def chart_many_lines(
+def _create_traces_from_list(
     df,
     x_col: str,
     y_cols: List[str],
-    title: str,
-    color: Optional[str] = None,
-    x_format: str = "#",
-    y_format: str = "$",
-):
-    """Create a line chart with multiple series."""
-    fig = px.line(
-        df,
-        x=x_col,
-        y=y_cols,
-        title=title,
-        color=color,
-        color_discrete_sequence=CATEGORICAL_COLORS,
-        template=PLOTLY_TEMPLATE,
-    )
-    fig = set_axes(fig, x_format, y_format)
-    return fig
-
-
-def chart_bars(
-    df,
-    x_col: str,
-    y_cols: Union[str, List[str]],
-    title: str,
-    color_by: Optional[str] = None,
-    x_format: str = "#",
-    y_format: str = "$",
-    column: bool = False,
-    barmode: str = "relative",
-    help_text: Optional[str] = None,
+    trace_type: str = "bar",
     human_format: bool = True,
-    custom_agg: Optional[Dict[str, str]] = None,
-    sort_by_last_value: bool = True,
-    sort_ascending: bool = False,
-):
-    """Create a bar chart."""
-    traces = _create_traces(
-        df,
-        x_col,
-        y_cols,
-        "bar",
-        color_by,
-        custom_agg,
-        human_format,
-        sort_by_last_value,
-        sort_ascending,
-        y_format,
-    )
-    fig = go.Figure(traces)
-    fig.update_layout(
-        title=title,
-        template=PLOTLY_TEMPLATE,
-        font=dict(family=FONT_FAMILY),
-        barmode=barmode,
-        legend_traceorder="reversed",
-    )
-    fig = set_axes(fig, x_format, y_format)
-    return update_layout(
-        fig,
-        orientation="h" if column else "v",
-        help_text=help_text,
-    )
-
-
-def chart_area(
-    df,
-    x_col: str,
-    y_cols: List[str],
-    title: str,
-    color_by: Optional[str] = None,
-    x_format: str = "#",
     y_format: str = "$",
-    column: bool = False,
-    sort_by_last_value: bool = True,
-    sort_ascending: bool = False,
-    help_text: Optional[str] = None,
-    human_format: bool = True,
-    custom_agg: Optional[Dict[str, str]] = None,
-):
-    """Create an area chart."""
-    traces = _create_traces(
-        df=df,
-        x_col=x_col,
-        y_cols=y_cols,
-        trace_type="line",
-        color_by=color_by,
-        custom_agg=custom_agg,
-        human_format=human_format,
-        sort_by_last_value=sort_by_last_value,
-        sort_ascending=sort_ascending,
-        y_format=y_format,
-    )
-    fig = go.Figure(traces)
-    fig.update_layout(
-        title=title,
-        template=PLOTLY_TEMPLATE,
-        font=dict(family=FONT_FAMILY),
-    )
-    fig = set_axes(fig, x_format, y_format)
-    return update_layout(
-        fig,
-        orientation="h" if column else "v",
-        help_text=help_text,
-    )
-
-
-def chart_lines(
-    df,
-    x_col: str,
-    y_cols: Union[str, List[str]],
-    title: str,
-    color_by: Optional[str] = None,
-    smooth: bool = False,
-    x_format: str = "#",
-    y_format: str = "$",
-    help_text: Optional[str] = None,
-    sort_by_last_value: bool = True,
-    sort_ascending: bool = False,
-    human_format: bool = True,
-    custom_agg: Optional[Dict[str, str]] = None,
     stackgroup: Optional[str] = "one",
+    color_map: Optional[Dict[str, str]] = CATEGORICAL_COLORS,
 ):
-    """Create a line chart."""
-    traces = _create_traces(
-        df,
-        x_col,
-        y_cols,
-        trace_type="line",
-        color_by=color_by,
-        custom_agg=custom_agg,
-        human_format=human_format,
-        sort_by_last_value=sort_by_last_value,
-        sort_ascending=sort_ascending,
-        y_format=y_format,
-        stackgroup=stackgroup,
-    )
-    fig = go.Figure(traces)
-    fig.update_layout(
-        title=title,
-        template=PLOTLY_TEMPLATE,
-        font=dict(family=FONT_FAMILY),
-    )
-    fig.update_traces(line_shape=None if smooth else "hv")
-    fig = set_axes(fig, x_format, y_format)
-    return update_layout(
-        fig,
-        help_text=help_text,
-    )
+    traces = []
+    percentage = True if y_format == "%" else False
+    no_decimals = False if y_format == "$" else True
+    for i, y_col in enumerate(y_cols):
+        color = color_map[i % len(color_map)]
+        hover_template = f"<extra></extra>%{{fullData.name}}: {HOVER_PREFIX_MAP[y_format]}%{{customdata}}"
+        custom_data = df[y_col]
+        if human_format:
+            custom_data = custom_data.apply(format_func, args=(no_decimals, percentage))
+        trace = _create_trace(
+            x=df[x_col],
+            y=df[y_col],
+            name=y_col,
+            color=color,
+            trace_type=trace_type,
+            legendrank=0,
+            custom_data=custom_data,
+            hover_template=hover_template,
+            show_legend=True,
+            stackgroup=stackgroup,
+        )
+        traces.append(trace)
+    return traces
 
 
-def chart_oi(df, x_col: str, title: str, help_text: Optional[str] = None):
-    """Create an Open Interest chart."""
-    fig = px.area(
-        df,
-        x=x_col,
-        y=["short_oi_pct", "long_oi_pct"],
-        line_shape="hv",
-        color_discrete_sequence=["red", "green"],
-        title=title,
-    )
-    fig.update_yaxes(tickformat=".0%")
-    return update_layout(fig, help_text=help_text)
-
-
-def _create_traces(
+def _create_traces_from_string(
     df,
     x_col: str,
-    y_cols: Union[str, List[str]],
+    y_cols: str,
     trace_type: str = "bar",
     color_by: Optional[str] = None,
-    custom_agg: Optional[Dict[str, str]] = None,
     human_format: bool = True,
-    sort_by_last_value: bool = True,
-    sort_ascending: bool = False,
     y_format: str = "$",
     stackgroup: Optional[str] = "one",
+    color_map: Optional[Dict[str, str]] = CATEGORICAL_COLORS,
 ):
     traces = []
     percentage = True if y_format == "%" else False
     no_decimals = False if y_format == "$" else True
     if color_by is not None:
+        if trace_type == "area":
+            # Get all unique indexes
+            all_indexes = pd.Index([])
+            for _, group in df.groupby(color_by):
+                all_indexes = all_indexes.union(group[x_col])
+
         for i, (label, group) in enumerate(df.groupby(color_by)):
-            group.reset_index(inplace=True)
-            _color = CATEGORICAL_COLORS[i % len(CATEGORICAL_COLORS)]
-            custom_data = (
-                group[y_cols].apply(format_func, args=(no_decimals, percentage))
-                if human_format
-                else group[y_cols]
-            )
+            if trace_type == "area":
+                # Reindex the group to include all x values
+                group = group.set_index(x_col).reindex(all_indexes, fill_value=0)
+            color = color_map[i % len(color_map)]
+            custom_data = group[y_cols]
+            if human_format:
+                custom_data = custom_data.apply(
+                    format_func, args=(no_decimals, percentage)
+                )
             hover_template = f"<extra></extra>%{{fullData.name}}: {HOVER_PREFIX_MAP[y_format]}%{{customdata}}"
-            hover_templates = np.where(
-                group[y_cols] > 0, hover_template, "<extra></extra>"
-            )
             trace = _create_trace(
-                group[x_col],
-                group[y_cols],
+                x=group.index if trace_type == "area" else group[x_col],
+                y=group[y_cols],
                 name=label,
                 trace_type=trace_type,
-                color=_color,
+                color=color,
                 legendrank=0,
                 stackgroup=stackgroup,
                 custom_data=custom_data,
-                hover_template=hover_templates,
-                show_legend=True,
-            )
-            traces.append(trace)
-    else:
-        if isinstance(y_cols, list):
-            for i, y_col in enumerate(y_cols):
-                _color = CATEGORICAL_COLORS[i % len(CATEGORICAL_COLORS)]
-                hover_template = f"<extra></extra>%{{fullData.name}}: {HOVER_PREFIX_MAP[y_format]}%{{customdata}}"
-                trace = _create_trace(
-                    x=df[x_col],
-                    y=df[y_col],
-                    name=y_col,
-                    color=_color,
-                    trace_type=trace_type,
-                    legendrank=0,
-                    custom_data=df[y_col].apply(
-                        format_func, args=(no_decimals, percentage)
-                    ),
-                    hover_template=hover_template,
-                    show_legend=True,
-                )
-                traces.append(trace)
-        else:
-            _color = CATEGORICAL_COLORS[0]
-            hover_template = f"<extra></extra>%{{fullData.name}}: {HOVER_PREFIX_MAP[y_format]}%{{customdata}}"
-            trace = _create_trace(
-                x=df[x_col],
-                y=df[y_cols],
-                name=y_cols,
-                color=_color,
-                trace_type=trace_type,
-                legendrank=0,
-                custom_data=df[y_cols].apply(
-                    format_func, args=(no_decimals, percentage)
-                ),
                 hover_template=hover_template,
                 show_legend=True,
             )
             traces.append(trace)
-
-    if sort_by_last_value:
-        traces.sort(key=lambda trace: trace["y"][-1], reverse=not sort_ascending)
-    for rank, trace in enumerate(traces):
-        trace["legendrank"] = -rank
-
-    if custom_agg is not None:
-        field = custom_agg.get(
-            "field", y_cols if isinstance(y_cols, str) else y_cols[0]
+    else:
+        color = color_map[0]
+        hover_template = f"<extra></extra>%{{fullData.name}}: {HOVER_PREFIX_MAP[y_format]}%{{customdata}}"
+        trace = _create_trace(
+            x=df[x_col],
+            y=df[y_cols],
+            name=y_cols,
+            color=color,
+            trace_type=trace_type,
+            legendrank=0,
+            custom_data=df[y_cols].apply(format_func, args=(no_decimals, percentage)),
+            hover_template=hover_template,
+            show_legend=True,
         )
+        traces.append(trace)
+    return traces
+
+
+def add_aggregation(traces, custom_agg, df, x_col, y_format, human_format):
+    percentage = True if y_format == "%" else False
+    no_decimals = False if y_format == "$" else True
+    if custom_agg is not None:
+        field = custom_agg.get("field")
         name = custom_agg.get("name", "Total")
         agg = custom_agg.get("agg", "sum")
         y = df.groupby(x_col)[field].agg(agg).reset_index()
@@ -416,12 +445,11 @@ def _create_traces(
             y=y[field],
             name=name,
             trace_type="line",
-            color=_color,
-            legendrank=-1000,
-            custom_data=custom_data,
-            show_legend=False,
-            hover_template=hover_template,
             linewidth=0,
+            custom_data=custom_data,
+            hover_template=hover_template,
+            show_legend=False,
+            legendrank=-1000,
         )
         traces.append(trace)
 
@@ -452,7 +480,7 @@ def _create_trace(
             hovertemplate=hover_template,
             showlegend=show_legend,
         )
-    elif trace_type == "line":
+    elif trace_type == "line" or trace_type == "area":
         return go.Scatter(
             x=x,
             y=y,

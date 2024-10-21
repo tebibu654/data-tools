@@ -67,6 +67,7 @@ def make_charts(data):
             title="Orders Settled",
             color_by="keeper",
             y_format="#",
+            unified_hover=False,
         ),
         "trades_pct": chart_bars(
             df,
@@ -75,6 +76,7 @@ def make_charts(data):
             title="Orders Settled %",
             color_by="keeper",
             y_format="%",
+            unified_hover=False,
         ),
         "amount_settled": chart_bars(
             df,
@@ -82,6 +84,7 @@ def make_charts(data):
             y_cols="amount_settled",
             title="Notional Size Settled",
             color_by="keeper",
+            unified_hover=False,
         ),
         "amount_settled_pct": chart_bars(
             df,
@@ -90,6 +93,7 @@ def make_charts(data):
             title="Notional Size Settled %",
             color_by="keeper",
             y_format="%",
+            unified_hover=False,
         ),
         "settlement_rewards": chart_bars(
             df,
@@ -97,6 +101,7 @@ def make_charts(data):
             y_cols="settlement_rewards",
             title="Settlement Rewards",
             color_by="keeper",
+            unified_hover=False,
         ),
         "settlement_rewards_pct": chart_bars(
             df,
@@ -105,6 +110,7 @@ def make_charts(data):
             title="Settlement Rewards %",
             color_by="keeper",
             y_format="%",
+            unified_hover=False,
         ),
     }
 

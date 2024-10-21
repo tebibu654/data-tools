@@ -244,7 +244,8 @@ def chart_oi(df, x_col: str, title: str, help_text: Optional[str] = None):
     )
     fig.update_yaxes(tickformat=".0%")
     fig = clear_axes(fig)
-    fig = add_help_text(fig, help_text)
+    if help_text is not None:
+        fig = add_help_text(fig, help_text)
     fig = set_hovermode_unified(fig)
     return fig
 

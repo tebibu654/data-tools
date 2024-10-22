@@ -144,10 +144,17 @@ def fetch_data(chain, account_id, start_date, end_date):
 def make_charts(data):
     return {
         "cumulative_volume": chart_lines(
-            data["hourly"], "ts", ["cumulative_volume"], "Cumulative Volume"
+            data["hourly"],
+            x_col="ts",
+            y_cols="cumulative_volume",
+            title="Cumulative Volume",
         ),
         "cumulative_fees": chart_lines(
-            data["hourly"], "ts", ["cumulative_fees"], "Cumulative Fees"
+            data["hourly"],
+            x_col="ts",
+            y_cols="cumulative_fees",
+            title="Cumulative Fees",
+            custom_agg=dict(field="cumulative_fees", name="Total", agg="sum"),
         ),
     }
 

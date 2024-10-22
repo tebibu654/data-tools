@@ -4,7 +4,7 @@ import streamlit as st
 import pandas as pd
 
 from dashboards.utils.data import export_data
-from dashboards.utils.charts import chart_many_bars, chart_bars, chart_lines
+from dashboards.utils.charts import chart_bars, chart_lines, chart_many_bars
 
 
 @st.cache_data(ttl="30m")
@@ -141,63 +141,66 @@ def make_charts(data):
         dict: A dictionary containing Plotly chart objects.
     """
     return {
-        "volume": chart_many_bars(
+        "volume": chart_bars(
             data["market"],
             "ts",
-            ["volume"],
+            "volume",
             "Volume",
             "market_symbol",
+            unified_hover=False,
         ),
-        "exchange_fees": chart_many_bars(
+        "exchange_fees": chart_bars(
             data["market"],
             "ts",
-            ["exchange_fees"],
+            "exchange_fees",
             "Exchange Fees",
             "market_symbol",
+            unified_hover=False,
         ),
-        "trades": chart_many_bars(
+        "trades": chart_bars(
             data["market"],
             "ts",
-            ["trades"],
+            "trades",
             "Trades",
             "market_symbol",
+            unified_hover=False,
             y_format="#",
         ),
-        "position_liquidations": chart_many_bars(
+        "position_liquidations": chart_bars(
             data["market"],
             "ts",
-            ["liquidations"],
+            "liquidations",
             "Position Liquidations",
             "market_symbol",
             y_format="#",
+            unified_hover=False,
         ),
         "account_liquidations": chart_bars(
             data["stats"],
-            "ts",
-            ["liquidated_accounts"],
-            "Account Liquidations",
+            x_col="ts",
+            y_cols="liquidated_accounts",
+            title="Account Liquidations",
             y_format="#",
         ),
         "liquidation_rewards": chart_bars(
             data["stats"],
-            "ts",
-            ["liquidation_rewards"],
-            "Liquidation Rewards",
+            x_col="ts",
+            y_cols="liquidation_rewards",
+            title="Liquidation Rewards",
         ),
         "skew": chart_lines(
             data["skew"],
-            "ts",
-            ["skew_usd"],
-            "Market Skew",
-            "market_symbol",
+            x_col="ts",
+            y_cols="skew_usd",
+            title="Market Skew",
+            color_by="market_symbol",
         ),
-        "current_skew": chart_bars(
+        "current_skew": chart_many_bars(
             data["current_skew"],
-            ["skew_usd"],
-            "side",
-            "Current Market Skew",
-            "market_symbol",
-            column=True,
+            x_col="skew_usd",
+            y_cols="side",
+            title="Current Market Skew",
+            color="market_symbol",
             x_format="$",
             y_format="#",
         ),

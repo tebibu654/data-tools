@@ -58,24 +58,21 @@ chart_perps_volume_by_chain = chart_bars(
     x_col="ts",
     y_cols="volume",
     title="Perps Volume",
-    color="chain",
-    hover_template="%{y:$.3s}<extra></extra>",
+    color_by="chain",
 )
 chart_perps_fees_by_chain = chart_bars(
     data["perps_stats"],
     x_col="ts",
     y_cols="exchange_fees",
     title="Perps Fees",
-    color="chain",
-    hover_template="%{y:$.3s}<extra></extra>",
+    color_by="chain",
 )
 chart_perps_oi_by_chain = chart_area(
     data["open_interest"],
     x_col="ts",
     y_cols="total_oi_usd",
     title="Open Interest",
-    color="chain",
-    hover_template="%{y:$.3s}<extra></extra>",
+    color_by="chain",
 )
 
 perps_chart_col1, perps_chart_col2 = st.columns(2)

@@ -4,7 +4,7 @@ import streamlit as st
 import pandas as pd
 
 from dashboards.utils.data import export_data
-from dashboards.utils.charts import chart_many_lines, chart_many_bars
+from dashboards.utils.charts import chart_lines, chart_many_bars
 
 
 @st.cache_data(ttl="30m")
@@ -115,26 +115,29 @@ def make_charts(data):
             "tracking_code",
             y_format="#",
         ),
-        "cumulative_volume": chart_many_lines(
+        "cumulative_volume": chart_lines(
             df,
             "ts",
-            ["cumulative_volume"],
+            "cumulative_volume",
             "Cumulative Volume",
             "tracking_code",
+            unified_hover=False,
         ),
-        "cumulative_exchange_fees": chart_many_lines(
+        "cumulative_exchange_fees": chart_lines(
             df,
             "ts",
-            ["cumulative_exchange_fees"],
+            "cumulative_exchange_fees",
             "Cumulative Exchange Fees",
             "tracking_code",
+            unified_hover=False,
         ),
-        "cumulative_trades": chart_many_lines(
+        "cumulative_trades": chart_lines(
             df,
             "ts",
-            ["cumulative_trades"],
+            "cumulative_trades",
             "Cumulative Trades",
             "tracking_code",
+            unified_hover=False,
         ),
     }
 
@@ -152,7 +155,6 @@ def main():
         st.session_state.start_date = datetime.today().date() - timedelta(days=14)
     if "end_date" not in st.session_state:
         st.session_state.end_date = datetime.today().date()
-
 
     # Filters section
     with st.expander("Filters"):

@@ -4,7 +4,7 @@ import streamlit as st
 import pandas as pd
 
 from dashboards.utils.data import export_data
-from dashboards.utils.charts import chart_many_bars
+from dashboards.utils.charts import chart_bars
 
 
 @st.cache_data(ttl="30m")
@@ -60,51 +60,57 @@ def make_charts(data):
     df = data["keeper"]
 
     return {
-        "trades": chart_many_bars(
+        "trades": chart_bars(
             df,
-            "ts",
-            ["trades"],
-            "Orders Settled",
-            "keeper",
+            x_col="ts",
+            y_cols="trades",
+            title="Orders Settled",
+            color_by="keeper",
             y_format="#",
+            unified_hover=False,
         ),
-        "trades_pct": chart_many_bars(
+        "trades_pct": chart_bars(
             df,
-            "ts",
-            ["trades_pct"],
-            "Orders Settled %",
-            "keeper",
+            x_col="ts",
+            y_cols="trades_pct",
+            title="Orders Settled %",
+            color_by="keeper",
             y_format="%",
+            unified_hover=False,
         ),
-        "amount_settled": chart_many_bars(
+        "amount_settled": chart_bars(
             df,
-            "ts",
-            ["amount_settled"],
-            "Notional Size Settled",
-            "keeper",
+            x_col="ts",
+            y_cols="amount_settled",
+            title="Notional Size Settled",
+            color_by="keeper",
+            unified_hover=False,
         ),
-        "amount_settled_pct": chart_many_bars(
+        "amount_settled_pct": chart_bars(
             df,
-            "ts",
-            ["amount_settled_pct"],
-            "Notional Size Settled %",
-            "keeper",
+            x_col="ts",
+            y_cols="amount_settled_pct",
+            title="Notional Size Settled %",
+            color_by="keeper",
             y_format="%",
+            unified_hover=False,
         ),
-        "settlement_rewards": chart_many_bars(
+        "settlement_rewards": chart_bars(
             df,
-            "ts",
-            ["settlement_rewards"],
-            "Settlement Rewards",
-            "keeper",
+            x_col="ts",
+            y_cols="settlement_rewards",
+            title="Settlement Rewards",
+            color_by="keeper",
+            unified_hover=False,
         ),
-        "settlement_rewards_pct": chart_many_bars(
+        "settlement_rewards_pct": chart_bars(
             df,
-            "ts",
-            ["settlement_rewards_pct"],
-            "Settlement Rewards %",
-            "keeper",
+            x_col="ts",
+            y_cols="settlement_rewards_pct",
+            title="Settlement Rewards %",
+            color_by="keeper",
             y_format="%",
+            unified_hover=False,
         ),
     }
 

@@ -25,10 +25,11 @@ st.markdown(hide_footer, unsafe_allow_html=True)
 # pages
 core = st.Page("views/core.py", title="Core System")
 perps = st.Page("views/perps.py", title="Perps Markets")
+performance = st.Page("views/performance.py", title="Query Performance")
 
 # navigation
 pages = {
-    "": [core, perps],
+    "": [core, perps, performance],
 }
 nav = st.navigation(pages)
 nav.run()

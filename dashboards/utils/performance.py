@@ -1,9 +1,9 @@
+import streamlit as st
 import time
-from datetime import datetime, timedelta
-import pandas as pd
-from api.internal_api import SynthetixAPI, get_db_config
 import logging
 from typing import Dict, List, Tuple, TypedDict
+from datetime import datetime, timedelta
+import pandas as pd
 
 logging.basicConfig(
     level=logging.INFO,
@@ -120,18 +120,17 @@ def create_benchmark_dataframe(results: Dict[str, BenchmarkData]) -> pd.DataFram
     data = []
     for scenario_key, benchmark_data in results.items():
         stats = calculate_stats(benchmark_data)
+        params = benchmark_data["params"]
 
         row = {
             "query_name": benchmark_data["query_name"],
-            "chain": benchmark_data["params"]["chain"],
-            "start_date": benchmark_data["params"]["start_date"].strftime("%Y-%m-%d"),
-            "end_date": benchmark_data["params"]["end_date"].strftime("%Y-%m-%d"),
             "avg_time": stats["avg_time"],
             "min_time": stats["min_time"],
             "max_time": stats["max_time"],
             "success_rate": stats["success_rate"],
             "error_count": len(benchmark_data["errors"]),
         }
+        row.update(params)
         data.append(row)
 
     return pd.DataFrame(data)

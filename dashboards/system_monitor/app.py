@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 import streamlit as st
+from api.internal_api import SynthetixAPI, get_db_config
 
 load_dotenv()
 
@@ -21,6 +22,14 @@ hide_footer = """
 """
 st.markdown(hide_footer, unsafe_allow_html=True)
 
+
+# set the API
+@st.cache_resource
+def load_api():
+    return SynthetixAPI(db_config=get_db_config(streamlit=True))
+
+
+st.session_state.api = load_api()
 
 # pages
 core = st.Page("views/core.py", title="Core System")

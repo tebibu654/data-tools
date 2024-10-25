@@ -3,6 +3,7 @@ import streamlit as st
 import pandas as pd
 from synthetix import Synthetix
 from synthetix.utils import wei_to_ether
+from synthetix.utils.multicall import call_erc7412, multicall_erc7412
 from eth_utils import encode_hex
 
 from dashboards.system_monitor.modules.settings import settings
@@ -25,9 +26,42 @@ settings(enabled_markets=PERPS_NETWORKS)
 def get_configs(snx):
     markets = snx.perps.markets_by_name
 
+    # call other functions
+    # - getSupportedCollaterals -> [collateralId1, collateralId2, ...]
+    # - getCollateralConfigurationFull(collateralId) -> (maxCollateralAmount, upperLimitDiscount, lowerLimitDiscount, discountScalar)
+
+    # if multicollateral
+    if snx.perps.is_multicollateral:
+        supported_collaterals = call_erc7412(
+            snx, snx.perps.market_proxy, "getSupportedCollaterals", ()
+        )
+        supported_collaterals = [x for x in supported_collaterals if x != 0]
+        collateral_configurations = multicall_erc7412(
+            snx,
+            snx.perps.market_proxy,
+            "getCollateralConfigurationFull",
+            [(collateral_id,) for collateral_id in supported_collaterals],
+        )
+        collateral_configurations = [
+            {
+                "market_id": idx,
+                "market_name": snx.spot.markets_by_id[idx]["market_name"],
+                "max_collateral_amount": wei_to_ether(x[0]),
+                "upper_limit_discount": wei_to_ether(x[1]),
+                "lower_limit_discount": wei_to_ether(x[2]),
+                "discount_scalar": wei_to_ether(x[3]),
+            }
+            for idx, x in zip(supported_collaterals, collateral_configurations)
+        ]
+        df_collaterals = pd.DataFrame.from_records(collateral_configurations)
+    else:
+        df_collaterals = pd.DataFrame()
+
     # create a dataframe and clean it
-    df = pd.DataFrame.from_dict(markets, orient="index").sort_values("market_id")
-    df["funding_apr"] = df["current_funding_rate"] * 365
+    df_markets = pd.DataFrame.from_dict(markets, orient="index").sort_values(
+        "market_id"
+    )
+    df_markets["funding_apr"] = df_markets["current_funding_rate"] * 365
 
     # change some types to percentages
     percent_cols = [
@@ -40,9 +74,9 @@ def get_configs(snx):
     ]
     for col in percent_cols:
         pct_format = "{:.4%}" if "funding" in col else "{:.2%}"
-        df[col] = df[col].astype(float).map(pct_format.format)
+        df_markets[col] = df_markets[col].astype(float).map(pct_format.format)
 
-    return df
+    return df_markets, df_collaterals
 
 
 def clean_markets(configs):
@@ -89,8 +123,8 @@ def clean_markets(configs):
 
 
 # format the configurations
-configs = get_configs(st.session_state.snx)
-clean_configs = clean_markets(configs)
+df_markets, df_collaterals = get_configs(st.session_state.snx)
+df_markets = clean_markets(df_markets)
 
 # display
 st.markdown("### Market Configurations")
@@ -105,7 +139,7 @@ settings_cols = [
     "max_funding_velocity",
     "feed_id",
 ]
-st.dataframe(configs[settings_cols], hide_index=True, use_container_width=True)
+st.dataframe(df_markets[settings_cols], hide_index=True, use_container_width=True)
 
 st.markdown("### Market Information")
 info_cols = [
@@ -121,4 +155,7 @@ info_cols = [
     "funding_apr",
     "interest_rate",
 ]
-st.dataframe(configs[info_cols], hide_index=True, use_container_width=True)
+st.dataframe(df_markets[info_cols], hide_index=True, use_container_width=True)
+
+st.markdown("### Collateral Configurations")
+st.dataframe(df_collaterals, hide_index=True, use_container_width=True)
